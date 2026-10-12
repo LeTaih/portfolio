@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>leteh — des applis faites main</title>
+    <meta name="description" content="Cyrose, des jeux de soirée entre amis, et Watchtracker, le suivi de tes séries. Des applis faites main par leteh." />
+    <meta name="theme-color" content="#000000" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:title" content="leteh — des applis faites main" />
+    <meta property="og:description" content="Cyrose, des jeux de soirée entre amis, et Watchtracker, le suivi de tes séries." />
+    <meta property="og:url" content="https://leteh.fr/" />
+    <meta property="og:image" content="https://leteh.fr/og.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="canonical" href="https://leteh.fr/" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body data-appli="cyrose">
+    <header class="entete">
+      <h1 class="marque">leteh</h1>
+      <nav class="bascule" aria-label="Choisir l'appli">
+        <button type="button" data-appli="cyrose" aria-pressed="true">Cyrose</button>
+        <button type="button" data-appli="watchtracker" aria-pressed="false">Watchtracker</button>
+      </nav>
+    </header>
+
+    <main class="mur">
+      <section class="zone" data-appli="cyrose" aria-labelledby="titre-cyrose">
+        <div class="colonnes" aria-hidden="true"></div>
+        <div class="bandeau">
+          <h2 id="titre-cyrose">Cyrose</h2>
+          <div class="texte">
+            <p>9 jeux de soirée de 1 à 8 joueurs, dans la même pièce : Undercover, Bataille navale, Blackjack, Poker, Roulette… Gratuit, sans compte, sans installation.</p>
+            <p class="mention">18+ · L'abus d'alcool est dangereux pour la santé.</p>
+          </div>
+          <a href="https://cyrose.fr" target="_blank" rel="noopener">Jouer sur cyrose.fr →</a>
+        </div>
+      </section>
+
+      <section class="zone" data-appli="watchtracker" aria-labelledby="titre-watchtracker">
+        <div class="colonnes" aria-hidden="true"></div>
+        <div class="bandeau">
+          <h2 id="titre-watchtracker">Watchtracker</h2>
+          <div class="texte">
+            <p>L'épisode à regarder ce soir, la date du prochain, et ce que tes amis ont vu cette semaine.</p>
+          </div>
+          <a href="https://watchtracker.fr" target="_blank" rel="noopener">Ouvrir watchtracker.fr →</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="pied"><a href="/mentions-legales">Mentions légales</a></footer>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

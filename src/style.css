@@ -1,0 +1,113 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gouttiere: 22px;
+  --rayon: 34px;
+  color-scheme: dark;
+}
+
+html, body {
+  height: 100%;
+  background: #000;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* --- En-tête ------------------------------------------------------------ */
+.entete {
+  position: fixed; inset: 0 0 auto; z-index: 20;
+  height: 64px; padding: 0 24px;
+  display: flex; align-items: center; gap: 16px;
+  background: linear-gradient(#000, #000d 55%, transparent);
+  pointer-events: none;
+}
+.entete > * { pointer-events: auto; }
+.marque { font-size: 24px; font-weight: 800; letter-spacing: -0.04em; }
+
+.bascule { display: none; }
+
+/* --- Le mur ------------------------------------------------------------- */
+.mur { position: fixed; inset: 0; display: flex; }
+.zone { position: relative; height: 100%; overflow: hidden; }
+.zone[data-appli="cyrose"] { flex: 3; background: radial-gradient(120% 80% at 30% 20%, #2a0c25, #0b0410 70%); }
+.zone[data-appli="watchtracker"] { flex: 1; background: radial-gradient(120% 80% at 50% 30%, #170a17, #000 70%); border-left: 1px solid #1d1d1d; }
+
+.colonnes {
+  position: absolute; inset: 0;
+  display: flex; gap: var(--gouttiere); padding: 0 var(--gouttiere);
+  mask-image: linear-gradient(transparent, #000 9%, #000 76%, transparent);
+}
+.colonne {
+  flex: 1; min-width: 0;
+  overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+.colonne::-webkit-scrollbar { display: none; }
+.copie { display: flex; flex-direction: column; gap: var(--gouttiere); padding-bottom: var(--gouttiere); }
+
+.tuile {
+  position: relative; width: 100%; aspect-ratio: 390 / 844;
+  border-radius: var(--rayon); overflow: hidden;
+  background: #0b0b0d;
+  box-shadow: 0 0 0 1px #ffffff1c, 0 30px 70px #000a;
+}
+.tuile img, .tuile iframe {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  border: 0; display: block; object-fit: cover;
+}
+.tuile iframe { pointer-events: none; opacity: 0; transition: opacity 0.4s ease-out; }
+.tuile iframe.pret { opacity: 1; }
+
+/* --- Bandeaux ----------------------------------------------------------- */
+.bandeau {
+  position: absolute; left: var(--gouttiere); right: var(--gouttiere); bottom: var(--gouttiere); z-index: 5;
+  display: flex; align-items: center; gap: 20px;
+  padding: 20px 22px; border-radius: 26px;
+  background: #000a;
+  backdrop-filter: blur(24px) saturate(1.4); -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  box-shadow: 0 0 0 1px #ffffff1f;
+}
+.bandeau h2 { font-size: 30px; font-weight: 800; letter-spacing: -0.03em; }
+.bandeau .texte { flex: 1; }
+.bandeau p { font-size: 14px; line-height: 1.45; opacity: 0.72; }
+.bandeau .mention { font-size: 11px; opacity: 0.45; margin-top: 4px; }
+.bandeau a {
+  flex-shrink: 0; background: #fff; color: #000; text-decoration: none;
+  font-weight: 600; font-size: 14px; padding: 11px 18px; border-radius: 999px;
+  transition: transform 0.2s ease-out;
+}
+.bandeau a:hover { transform: scale(1.04); }
+.bandeau a:focus-visible, .bascule button:focus-visible, .pied a:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.zone[data-appli="watchtracker"] .bandeau { flex-direction: column; align-items: flex-start; gap: 8px; }
+.zone[data-appli="watchtracker"] .bandeau h2 { font-size: 24px; }
+
+.pied { position: fixed; right: 16px; top: 22px; z-index: 21; font-size: 12px; }
+.pied a { color: #fff; opacity: 0.4; text-decoration: none; }
+.pied a:hover { opacity: 0.8; }
+
+/* --- Téléphone : une appli à la fois ------------------------------------ */
+@media (max-width: 767.98px) {
+  :root { --gouttiere: 12px; --rayon: 22px; }
+  .entete { padding: 0 16px; height: 60px; }
+  .marque { font-size: 20px; }
+  .bascule {
+    display: flex; margin-left: auto;
+    padding: 3px; border-radius: 999px; background: #ffffff14; box-shadow: inset 0 0 0 1px #ffffff1f;
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  }
+  .bascule button {
+    font: inherit; font-size: 13px; font-weight: 600; color: #fff; background: none; border: 0;
+    padding: 7px 13px; border-radius: 999px; opacity: 0.6; cursor: pointer;
+  }
+  .bascule button[aria-pressed="true"] { background: #fff; color: #000; opacity: 1; }
+  .zone { flex: 1 !important; border: 0 !important; }
+  body[data-appli="cyrose"] .zone[data-appli="watchtracker"],
+  body[data-appli="watchtracker"] .zone[data-appli="cyrose"] { display: none; }
+  .bandeau { flex-direction: column; align-items: flex-start; gap: 6px; padding: 14px 16px; border-radius: 22px; }
+  .bandeau h2, .zone[data-appli="watchtracker"] .bandeau h2 { font-size: 21px; }
+  .bandeau p { font-size: 12.5px; line-height: 1.4; }
+  .bandeau a { font-size: 13px; padding: 9px 15px; margin-top: 4px; }
+  .pied { top: auto; bottom: 2px; right: 50%; transform: translateX(50%); font-size: 10px; }
+}

@@ -1,0 +1,68 @@
+// Une iframe de tuile embarque parfois une appli React entière, et elle partage
+// le fil principal de la page : on n'en garde que pour les tuiles proches de
+// l'écran, et on les démarre une par une pour ne jamais figer le mur.
+
+const MARGE = '25% 0px'
+/** Délai entre deux démarrages de tuile. */
+const ECART_MS = 220
+
+const enAttente = new Set<HTMLElement>()
+let minuterie = 0
+
+function suivante() {
+  minuterie = 0
+  const tuile = enAttente.values().next().value
+  if (!tuile) return
+  enAttente.delete(tuile)
+  monter(tuile)
+  planifier()
+}
+
+function planifier() {
+  if (minuterie || !enAttente.size) return
+  minuterie = window.setTimeout(() => {
+    // Le démarrage attend un creux : jamais au milieu d'une image du défilement.
+    if ('requestIdleCallback' in window) requestIdleCallback(suivante, { timeout: 500 })
+    else suivante()
+  }, ECART_MS)
+}
+
+export function observer(colonne: HTMLElement): () => void {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return () => {}
+
+  const io = new IntersectionObserver(
+    entrees => {
+      for (const e of entrees) {
+        const tuile = e.target as HTMLElement
+        if (e.isIntersecting) {
+          enAttente.add(tuile)
+        } else {
+          enAttente.delete(tuile)
+          tuile.querySelector('iframe')?.remove()
+        }
+      }
+      planifier()
+    },
+    { root: colonne, rootMargin: MARGE },
+  )
+  const tuiles = colonne.querySelectorAll<HTMLElement>('.tuile')
+  tuiles.forEach(t => io.observe(t))
+
+  return () => {
+    io.disconnect()
+    tuiles.forEach(t => enAttente.delete(t))
+    colonne.querySelectorAll('iframe').forEach(f => f.remove())
+  }
+}
+
+function monter(tuile: HTMLElement) {
+  if (!tuile.isConnected || tuile.querySelector('iframe')) return
+  const f = document.createElement('iframe')
+  f.src = `/tuiles/${tuile.dataset.id}.html`
+  f.tabIndex = -1
+  f.title = ''
+  f.setAttribute('aria-hidden', 'true')
+  // Fondu d'entrée : l'affiche reste visible tant que la tuile n'a pas peint.
+  f.addEventListener('load', () => f.classList.add('pret'), { once: true })
+  tuile.append(f)
+}
