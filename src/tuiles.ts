@@ -9,9 +9,10 @@ export interface Tuile {
 }
 
 export const TUILES: Tuile[] = [
-  { id: 'cy-blackjack', appli: 'cyrose', titre: 'Blackjack', affiche: 6 },
+  { id: 'cy-blackjack', appli: 'cyrose', titre: 'Blackjack', affiche: 11.4 },
   { id: 'cy-purple', appli: 'cyrose', titre: 'Purple', affiche: 8.15 },
   { id: 'cy-undercover', appli: 'cyrose', titre: 'Undercover', affiche: 12.6 },
+  { id: 'cy-cliche', appli: 'cyrose', titre: 'Cliché', affiche: 5.45 },
   { id: 'wt-pile', appli: 'watchtracker', titre: 'La Pile', affiche: 2.6 },
 ]
 
