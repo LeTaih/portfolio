@@ -15,6 +15,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="canonical" href="https://leteh.fr/" />
     <link rel="stylesheet" href="/src/style.css" />
+    <link rel="stylesheet" href="/src/choix.css" />
   </head>
   <body data-appli="cyrose">
     <header class="entete">
@@ -39,7 +40,7 @@
           </dl>
           <div class="fin">
             <p class="mention">18+ · L'abus d'alcool est dangereux pour la santé.</p>
-            <a href="https://cyrose.fr" target="_blank" rel="noopener">Jouer ↗</a>
+            <a href="https://cyrose.fr" target="_blank" rel="noopener" data-choix="cyrose">Jouer ↗</a>
           </div>
         </div>
       </section>
@@ -61,6 +62,36 @@
         </div>
       </section>
     </main>
+
+
+    <dialog class="choix" id="choix-cyrose" aria-labelledby="choix-titre">
+      <p class="choix-titre" id="choix-titre">Deux tables. Choisis la tienne.</p>
+      <button type="button" class="choix-fermer" aria-label="Fermer">✕</button>
+      <div class="portes">
+        <a class="porte rave" href="https://cyrose.fr" target="_blank" rel="noopener">
+          <div class="porte-texte">
+            <span class="rave-badge">✦ Recommandé</span>
+            <span class="rave-nom">cy<span>rose</span></span>
+            <span class="rave-sous">La version stable</span>
+            <span class="rave-desc">Le Cyrose de tous les jours : rapide, lisible, éprouvé en vraie soirée. C'est ici que tout le monde joue.</span>
+            <span class="rave-bouton">Jouer sur cyrose.fr ↗</span>
+          </div>
+          <span class="porte-tel"><img src="/choix/rave-accueil.jpg" alt="L'accueil de cyrose.fr" loading="lazy" /></span>
+        </a>
+        <a class="porte bar" href="https://alt.cyrose.fr" target="_blank" rel="noopener">
+          <span class="bar-lumiere" aria-hidden="true"></span>
+          <div class="porte-texte">
+            <span class="bar-tampon">Expérimental</span>
+            <span class="bar-nom">Cyrose</span>
+            <span class="bar-sous">au Bar des menteurs</span>
+            <span class="bar-desc" data-tape="Les mêmes jeux, servis dans une cave. Plus lent, plus théâtral, et ça peut encore grincer. Une autre façon de jouer, à essayer.">Les mêmes jeux, servis dans une cave. Plus lent, plus théâtral, et ça peut encore grincer. Une autre façon de jouer, à essayer.</span>
+            <span class="bar-carte"><i>A</i>Entrer ↗<i>A</i></span>
+          </div>
+          <span class="porte-tel"><img src="/choix/alt-accueil.jpg" alt="L'accueil d'alt.cyrose.fr" loading="lazy" /></span>
+        </a>
+      </div>
+      <p class="choix-pied">18+ · L'abus d'alcool est dangereux pour la santé.</p>
+    </dialog>
 
     <footer class="pied"><a href="/mentions-legales">Mentions légales</a></footer>
     <script type="module" src="/src/main.ts"></script>

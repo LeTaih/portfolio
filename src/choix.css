@@ -1,0 +1,144 @@
+/* « Deux tables » : le choix entre cyrose.fr (la version stable) et
+   alt.cyrose.fr (le Bar des menteurs, expérimental). Chaque moitié parle la
+   langue de son site : le Rave Acid à gauche, la cave à droite. */
+
+@font-face { font-family: Archivo; src: url(/tuiles/cy-archivo-400-latin.woff2) format("woff2"); font-display: swap; }
+@font-face { font-family: Anton; src: url(/tuiles/cy-anton-400-latin.woff2) format("woff2"); font-display: swap; }
+
+.choix {
+  position: fixed; inset: 0; margin: auto;
+  width: min(1180px, calc(100vw - 48px)); height: min(700px, calc(100dvh - 48px));
+  max-width: none; max-height: none;
+  padding: 0; border: 0; border-radius: 30px; overflow: hidden;
+  background: #000; color: #fff;
+  box-shadow: 0 0 0 1px #ffffff1f, 0 40px 120px #000;
+}
+.choix::backdrop { background: #000b; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.choix[open] { animation: choix-entree .5s cubic-bezier(.2, .9, .2, 1); }
+.choix[open]::backdrop { animation: choix-fondu .4s ease-out; }
+@keyframes choix-entree { from { opacity: 0; transform: translateY(24px) scale(.97); } }
+@keyframes choix-fondu { from { opacity: 0; } }
+
+.choix-titre {
+  position: absolute; top: 18px; left: 0; right: 0; z-index: 4; text-align: center; pointer-events: none;
+  font: 600 13px Inter, system-ui, sans-serif; letter-spacing: .02em; color: #ffffffb0;
+}
+.choix-fermer {
+  position: absolute; top: 12px; right: 12px; z-index: 5;
+  width: 38px; height: 38px; border-radius: 50%; border: 0; cursor: pointer;
+  background: #0008; color: #fff; font-size: 15px; backdrop-filter: blur(10px);
+  box-shadow: 0 0 0 1px #ffffff26;
+}
+.choix-pied {
+  position: absolute; bottom: 12px; left: 0; right: 0; z-index: 4; text-align: center; pointer-events: none;
+  font: 10px/1 "Space Mono", monospace; letter-spacing: .06em; text-transform: uppercase; color: #ffffff59;
+}
+
+.portes { display: flex; height: 100%; }
+.porte {
+  position: relative; flex: 1; min-width: 0; overflow: hidden;
+  display: flex; align-items: center; justify-content: center; gap: 38px;
+  padding: 64px 40px 48px; text-decoration: none; color: inherit;
+  transition: flex-grow .6s cubic-bezier(.2, .8, .2, 1), filter .5s;
+}
+.portes:hover .porte:not(:hover) { filter: brightness(.55) saturate(.7); }
+.porte:hover, .porte:focus-visible { flex-grow: 1.35; }
+.porte:focus-visible { outline: 3px solid #fff; outline-offset: -6px; }
+.porte-texte { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: flex-start; max-width: 300px; }
+.porte-tel {
+  position: relative; z-index: 2; flex-shrink: 0;
+  width: clamp(150px, 17vw, 210px); aspect-ratio: 390 / 844;
+  border-radius: 30px; overflow: hidden; border: 6px solid #0c0c0c;
+  transition: transform .6s cubic-bezier(.2, .8, .2, 1);
+}
+.porte-tel img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+
+/* --- Gauche : le Rave Acid ------------------------------------------------ */
+.rave {
+  background:
+    radial-gradient(60% 55% at 15% 10%, #ff1e8c40, transparent 70%),
+    radial-gradient(55% 60% at 95% 95%, #7c3aed59, transparent 70%),
+    linear-gradient(160deg, #2a0c25, #12051a 60%);
+  font-family: Archivo, Inter, sans-serif;
+}
+.rave .porte-tel { transform: rotate(-4deg); box-shadow: 0 0 0 1px #ff4fa355, 0 30px 80px #ff1e8c40; }
+.rave:hover .porte-tel { transform: rotate(-1deg) translateY(-8px) scale(1.03); }
+.rave-badge {
+  font: 700 12px Syne, sans-serif; letter-spacing: .04em; color: #12020c;
+  background: #ff4fa3; padding: 6px 12px; border-radius: 999px; margin-bottom: 18px;
+  box-shadow: 0 0 24px #ff4fa388;
+}
+.rave-nom { font: 700 64px/.85 Syne, sans-serif; letter-spacing: -.035em; }
+.rave-nom span { color: #ff4fa3; }
+.rave-sous { font: 700 15px Syne, sans-serif; color: #c9b3ff; margin-top: 10px; }
+.rave-desc { font-size: 15px; line-height: 1.5; color: #e3d6ffcc; margin: 16px 0 24px; }
+.rave-bouton {
+  font: 700 14px Syne, sans-serif; letter-spacing: .05em; text-transform: uppercase;
+  padding: 15px 22px; border-radius: 14px; color: #fff; white-space: nowrap;
+  background: linear-gradient(180deg, #ff3d9a, #e6157a);
+  box-shadow: 0 10px 30px #ff1e8c66, inset 0 1px 0 #ffffff55;
+}
+
+/* --- Droite : la cave ------------------------------------------------------ */
+.bar {
+  --x: 70%; --y: 20%;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(70% 60% at 50% 120%, #1a261d88, transparent 70%),
+    #050504;
+  color: #d6cbad;
+  font-family: "Space Mono", ui-monospace, monospace;
+  border-left: 1px solid #3b3a33;
+}
+/* Le projecteur suit la main ; il s'allume en vacillant à l'ouverture. */
+.bar-lumiere {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(circle 340px at var(--x) var(--y), rgb(214 228 196 / .16), rgb(214 228 196 / .04) 45%, transparent 70%);
+}
+.choix[open] .bar-lumiere { animation: allumage 1.4s steps(1) .25s both; }
+@keyframes allumage {
+  0% { opacity: 0; } 12% { opacity: .9; } 18% { opacity: .1; } 30% { opacity: 1; } 36% { opacity: .3; } 48%, 100% { opacity: 1; }
+}
+.bar .porte-tel { transform: rotate(3deg); border-color: #12110e; box-shadow: 0 0 0 1px #b39b6944, 0 30px 70px #000; filter: sepia(.15); }
+.bar:hover .porte-tel { transform: rotate(1deg) translateY(-8px) scale(1.03); }
+.bar-tampon {
+  font: 400 15px Anton, Impact, sans-serif; letter-spacing: .14em; text-transform: uppercase;
+  color: #ff5a4a; border: 2px solid #b3180f; border-radius: 4px; padding: 3px 10px 2px;
+  transform: rotate(-6deg); margin-bottom: 20px; opacity: .9;
+  box-shadow: inset 0 0 0 1px #b3180f44;
+}
+.bar-nom { font: 400 76px/.9 Anton, Impact, sans-serif; letter-spacing: .02em; text-transform: uppercase; color: #d6cbad; }
+.bar-sous { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: #8f8672; margin-top: 8px; }
+.bar-desc { font-size: 13.5px; line-height: 1.6; margin: 18px 0 26px; min-height: 6.4em; }
+.bar-desc.tape::after { content: "▌"; color: #d6cbad; animation: curseur 1s steps(1) infinite; }
+@keyframes curseur { 50% { opacity: 0; } }
+.bar-carte {
+  position: relative; display: inline-flex; align-items: center; gap: 18px;
+  font: 400 20px Anton, Impact, sans-serif; letter-spacing: .04em; text-transform: uppercase; color: #1a1712;
+  padding: 14px 20px;
+  background: repeating-linear-gradient(#ece3cc 0 5px, #e3d8bc 5px 6px);
+  box-shadow: inset 0 0 0 3px #ece3cc, inset 0 0 0 5px #b3180f, 0 14px 30px #000c;
+  transform: rotate(-2deg); transition: transform .3s cubic-bezier(.2, .8, .2, 1);
+}
+.bar:hover .bar-carte { transform: rotate(0) translateY(-3px); }
+.bar-carte i { font-style: normal; font-size: 13px; color: #b3180f; }
+
+/* --- Téléphone : les deux tables l'une sur l'autre ------------------------ */
+@media (max-width: 767.98px) {
+  .choix { width: 100vw; height: 100dvh; border-radius: 0; }
+  .portes { flex-direction: column; }
+  .porte { padding: 54px 20px 22px; gap: 16px; justify-content: space-between; }
+  .porte + .porte { padding-top: 22px; padding-bottom: 40px; }
+  .bar { border-left: 0; border-top: 1px solid #3b3a33; }
+  .porte-tel { width: 110px; border-width: 4px; border-radius: 20px; }
+  .rave-nom { font-size: 44px; } .bar-nom { font-size: 50px; }
+  .rave-desc, .bar-desc { font-size: 12.5px; margin: 10px 0 14px; }
+  .bar-desc { min-height: 0; }
+  .rave-badge { margin-bottom: 10px; } .bar-tampon { margin-bottom: 12px; }
+  .porte:hover, .porte:focus-visible { flex-grow: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .choix[open], .choix[open]::backdrop, .choix[open] .bar-lumiere { animation: none; }
+  .porte, .porte-tel, .bar-carte { transition: none; }
+}

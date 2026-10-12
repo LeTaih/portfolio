@@ -69,6 +69,22 @@ try {
     const g3 = await positions(p)
     verifier(ecart(g3[1], g2[1], 1) > 3, 'reprise après le geste')
 
+    // « Jouer » ouvre le choix des deux tables, Échap le referme.
+    await p.click('[data-choix="cyrose"]')
+    await pause(900)
+    const choix = await p.evaluate(() => ({
+      ouvert: document.querySelector('#choix-cyrose').open,
+      liens: [...document.querySelectorAll('#choix-cyrose .porte')].map(a => a.href),
+    }))
+    verifier(choix.ouvert && choix.liens.join() === 'https://cyrose.fr/,https://alt.cyrose.fr/', `« Jouer » ouvre les deux tables (${choix.liens})`)
+    await pause(2600)
+    await p.mouse.move(1100, 300)
+    await pause(400)
+    await p.screenshot({ path: `${SORTIE}/choix.png` })
+    await p.keyboard.press('Escape')
+    await pause(300)
+    verifier(!(await p.evaluate(() => document.querySelector('#choix-cyrose').open)), 'Échap referme le choix')
+
     const pageDefile = await p.evaluate(() => document.scrollingElement.scrollHeight > innerHeight)
     verifier(!pageDefile, 'la page elle-même ne défile pas')
     const iframes = await p.$$eval('iframe', fs => fs.length)
@@ -92,6 +108,11 @@ try {
     const zoneVisible = () => p.$$eval('.zone', zs => zs.filter(z => z.offsetParent).map(z => z.dataset.appli))
     verifier(JSON.stringify(await zoneVisible()) === '["cyrose"]', 'téléphone : Cyrose seul au départ')
     await p.screenshot({ path: `${SORTIE}/telephone-cyrose.png` })
+    await p.tap('[data-choix="cyrose"]')
+    await pause(3200)
+    await p.screenshot({ path: `${SORTIE}/telephone-choix.png` })
+    await p.tap('.choix-fermer')
+    await pause(300)
     await p.tap('.bascule button[data-appli="watchtracker"]')
     await pause(1200)
     verifier(JSON.stringify(await zoneVisible()) === '["watchtracker"]', 'la bascule montre Watchtracker')
