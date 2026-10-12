@@ -62,7 +62,8 @@ export function observer(colonne: HTMLElement): () => void {
 function monter(tuile: HTMLElement) {
   if (!tuile.isConnected || tuile.querySelector('iframe')) return
   const f = document.createElement('iframe')
-  f.src = `/tuiles/${tuile.dataset.id}.html`
+  // En production, Vercel sert les pages sans extension (cleanUrls) : pas de détour par une 308.
+  f.src = `/tuiles/${tuile.dataset.id}${import.meta.env.DEV ? '.html' : ''}`
   f.tabIndex = -1
   f.title = ''
   f.setAttribute('aria-hidden', 'true')
