@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="default" style="--magenta: 255 30 140;">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cyrose · Undercover</title>
+<link rel="icon" href="data:,">
+<link rel="preload" as="font" type="font/woff2" href="cy-archivo-400-latin.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="cy-syne-700-latin.woff2" crossorigin>
+<style id="cy-css">
+/*__CSS__*/
+</style>
+<style>
+/* ── Le cadre de la tuile : un téléphone 390×844, mis à l'échelle de l'iframe ── */
+html, body { margin: 0; padding: 0; overflow: hidden; width: 100%; height: 100%; }
+#cy-stage { position: absolute; left: 0; top: 0; width: 390px; height: 844px; transform-origin: 0 0; overflow: hidden;
+  background: var(--bg); font-family: 'Archivo', system-ui, sans-serif; color: var(--text); }
+.cy-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+#cy-host { position: absolute; inset: 0; opacity: 0; }
+#cy-host #root { min-height: 844px; }
+#cy-host, #cy-host * { pointer-events: none; }
+#cy-confetti { position: absolute; left: 0; top: 0; width: 390px; height: 844px; z-index: 100; pointer-events: none; }
+/* Le doigt fictif : un disque blanc translucide, posé par le script (fonction du temps). */
+#cy-finger { position: absolute; left: 0; top: 0; z-index: 500; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%;
+  background: radial-gradient(circle at 50% 45%, rgba(255,255,255,0.42), rgba(255,255,255,0.22) 70%);
+  box-shadow: 0 0 0 1.5px rgba(255,255,255,0.45), 0 8px 22px -8px rgba(0,0,0,0.7);
+  pointer-events: none; opacity: 0; will-change: transform, opacity; }
+#cy-finger > i { position: absolute; inset: 0; border-radius: 50%; box-shadow: 0 0 0 1.5px rgba(255,255,255,0.6); opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .cy-bg::before { animation: none !important; } #cy-finger { display: none; } }
+</style>
+</head>
+<body>
+<div id="cy-stage" aria-hidden="true"><div class="cy-bg"></div><div id="cy-host"></div><div id="cy-finger"><i></i></div></div>
+<script>/*__JS__*/</script>
+</body>
+</html>

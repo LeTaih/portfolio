@@ -19,6 +19,8 @@ try {
     if (voulues.length && !voulues.includes(t.id)) continue
     await p.goto(`${BASE}/tuiles/${t.id}.html?t=${t.affiche}`)
     await p.evaluate(() => document.fonts.ready)
+    // Certaines tuiles rejouent leur script jusqu'à t et le signalent par data-pret.
+    await p.waitForFunction(() => document.documentElement.dataset.pret === '1', null, { timeout: 4000 }).catch(() => {})
     await pause(1500)
     await p.screenshot({ path: `public/tuiles/${t.id}.jpg`, type: 'jpeg', quality: 85 })
     console.log(`✓ ${t.id} (t=${t.affiche} s)`)
