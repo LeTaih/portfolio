@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Watchtracker · Pile</title>
+<link rel="preconnect" href="https://image.tmdb.org" crossorigin>
+<link rel="preload" href="wt-inter-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="wt-inter-500.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  /* Inter auto-hébergée (sous-ensemble latin, celui que charge next/font) */
+  @font-face { font-family: Inter; font-style: normal; font-weight: 400; font-display: swap; src: url(wt-inter-400.woff2) format('woff2'); }
+  @font-face { font-family: Inter; font-style: normal; font-weight: 500; font-display: swap; src: url(wt-inter-500.woff2) format('woff2'); }
+  @font-face { font-family: Inter; font-style: normal; font-weight: 600; font-display: swap; src: url(wt-inter-600.woff2) format('woff2'); }
+  @font-face { font-family: Inter; font-style: normal; font-weight: 700; font-display: swap; src: url(wt-inter-700.woff2) format('woff2'); }
+  /* Tokens recopiés du @theme de watchtracker/src/app/globals.css */
+  :root {
+    --voile: rgb(218 112 214 / 0.042);
+    --voile-fort: rgb(218 112 214 / 0.075);
+    --filet: rgb(232 178 230 / 0.11);
+    --filet-fort: rgb(232 178 230 / 0.17);
+    --reflet: inset 0 1px 0 rgb(248 232 247 / 0.09);
+    --blur-halo: 48px;
+    --blur-surface: 40px;
+    --blur-controle: 20px;
+    --neutral-950: #0a0a0a;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: #000;
+    overflow: hidden;
+    color-scheme: dark;
+  }
+  body {
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    line-height: 1.5;
+    color: #fff;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  img { display: block; }
+
+  /* L'écran : un iPhone de 390 × 844 points, mis à l'échelle de l'iframe. */
+  #ecran {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 390px;
+    height: 844px;
+    overflow: hidden;
+    background: #000;
+    transform-origin: 0 0;
+  }
+
+  /* Barre d'état iOS (PWA en black-translucent : safe-area-inset-top = 47 px) */
+  .statut {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 47px;
+    z-index: 30;
+    pointer-events: none;
+  }
+  .statut .heure {
+    position: absolute;
+    left: 0;
+    width: 132px;
+    top: 15px;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 22px;
+    letter-spacing: -0.01em;
+  }
+  .statut .icones {
+    position: absolute;
+    right: 0;
+    width: 132px;
+    top: 19px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+  }
+  .ilot {
+    position: absolute;
+    top: 11px;
+    left: 50%;
+    width: 124px;
+    height: 36px;
+    margin-left: -62px;
+    border-radius: 999px;
+    background: #000;
+  }
+
+  /* <main className="mx-auto max-w-md px-4 pb-4 pt-7"> sous le pt-[safe-area] du body */
+  main {
+    padding: calc(47px + 28px) 16px 16px;
+  }
+  h1 {
+    font-size: 30px;
+    line-height: 36px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    margin-bottom: 24px;
+  }
+  /* TITRE_SECTION = 'text-[13px] font-semibold uppercase tracking-wider text-white/40' */
+  h2 {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgb(255 255 255 / 0.4);
+  }
+  /* <nav aria-label="Ordre de la pile" className="mb-4 mt-3 flex gap-2"> */
+  .tris {
+    display: flex;
+    gap: 8px;
+    margin: 12px 0 16px;
+  }
+  .tri {
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 14px;
+    line-height: 20px;
+    background: var(--voile);
+    color: rgb(255 255 255 / 0.6);
+    box-shadow: inset 0 0 0 1px var(--filet);
+    -webkit-backdrop-filter: blur(var(--blur-controle));
+    backdrop-filter: blur(var(--blur-controle));
+  }
+  .tri.ici {
+    background: #fff;
+    color: var(--neutral-950);
+    font-weight: 500;
+    box-shadow: inset 0 0 0 1px #fff;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  /* <ul className="flex flex-col gap-3"> — cartes posées en absolu pour pouvoir
+     animer la recomposition de la liste. */
+  .pile {
+    position: relative;
+    list-style: none;
+    height: calc(5 * 120px + 4 * 12px);
+  }
+
+  /* UpNextCard : relative overflow-hidden rounded-3xl bg-voile inset-ring-1
+     inset-ring-filet backdrop-blur-surface shadow-reflet */
+  .carte {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 120px;
+    overflow: hidden;
+    border-radius: 24px;
+    background: var(--voile);
+    box-shadow: inset 0 0 0 1px var(--filet), var(--reflet);
+    -webkit-backdrop-filter: blur(var(--blur-surface));
+    backdrop-filter: blur(var(--blur-surface));
+    will-change: transform, opacity;
+  }
+  /* Le halo : absolute inset-0 h-full w-full scale-125 object-cover opacity-30 blur-halo saturate-150 */
+  .halo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.25);
+    opacity: 0.3;
+    filter: blur(var(--blur-halo)) saturate(1.5);
+    pointer-events: none;
+  }
+  /* La coche découverte par le balayage : absolute inset-y-0 right-0 flex w-24 */
+  .revele {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 96px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    opacity: 0;
+  }
+  /* relative flex items-stretch gap-3 p-3 */
+  .contenu {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px;
+    height: 100%;
+  }
+  /* Poster : h-24 w-16 shrink-0 rounded-xl object-cover */
+  .affiche {
+    position: relative;
+    width: 64px;
+    height: 96px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    object-fit: cover;
+    background: var(--voile-fort);
+  }
+  .textes {
+    position: relative;
+    display: block;
+    min-width: 0;
+    flex: 1;
+  }
+  .texte {
+    display: block;
+  }
+  .texte.suite {
+    position: absolute;
+    inset: 0 0 auto 0;
+    opacity: 0;
+  }
+  .titre {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 500;
+  }
+  .episode {
+    display: block;
+    margin-top: 2px;
+    font-size: 14px;
+    line-height: 20px;
+    color: rgb(255 255 255 / 0.6);
+  }
+  .reste {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 16px;
+    color: rgb(255 255 255 / 0.4);
+    font-variant-numeric: tabular-nums;
+  }
+  /* Le bouton coche : relative flex w-20 shrink-0 rounded-full inset-ring-1,
+     bg-voile-fort text-white inset-ring-filet-fort backdrop-blur-controle shadow-reflet
+     → marqué : bg-white text-neutral-950 inset-ring-white */
+  .coche {
+    position: relative;
+    display: flex;
+    width: 80px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    border: 0;
+    color: #fff;
+    background: var(--voile-fort);
+    box-shadow: inset 0 0 0 1px var(--filet-fort), var(--reflet);
+    -webkit-backdrop-filter: blur(var(--blur-controle));
+    backdrop-filter: blur(var(--blur-controle));
+    overflow: hidden;
+  }
+  .coche .blanc {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: #fff;
+    box-shadow: inset 0 0 0 1px #fff;
+    opacity: 0;
+  }
+  .coche svg { position: relative; }
+
+  /* BottomNav : fixed inset-x-0 bottom-0 px-4 pb-[max(safe-area,0.75rem)] */
+  .onglets {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    padding: 0 16px 34px;
+  }
+  .onglets .capsule {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-around;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--voile-fort);
+    box-shadow: inset 0 0 0 1px var(--filet), inset 0 1px 0 rgb(248 232 247 / 0.09), 0 12px 40px rgb(0 0 0 / 0.55);
+    -webkit-backdrop-filter: blur(var(--blur-surface));
+    backdrop-filter: blur(var(--blur-surface));
+  }
+  .onglet {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 8px 0;
+    font-size: 10px;
+    line-height: 15px;
+    font-weight: 500;
+    color: rgb(255 255 255 / 0.4);
+  }
+  .onglet.actif { color: #fff; }
+
+  /* Le bandeau d'annulation (annulation.tsx) */
+  .annulation {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(88px + 34px);
+    z-index: 40;
+    display: flex;
+    justify-content: center;
+    padding: 0 16px;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .annulation .pilule {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 999px;
+    padding: 8px 8px 8px 20px;
+    background: var(--voile-fort);
+    box-shadow: inset 0 0 0 1px var(--filet-fort), var(--reflet);
+    -webkit-backdrop-filter: blur(var(--blur-surface));
+    backdrop-filter: blur(var(--blur-surface));
+  }
+  .annulation .libelle {
+    font-size: 14px;
+    line-height: 20px;
+    color: rgb(255 255 255 / 0.8);
+    white-space: nowrap;
+  }
+  .annulation .annuler {
+    flex-shrink: 0;
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 14px;
+    line-height: 20px;
+    background: #fff;
+    font-weight: 600;
+    color: var(--neutral-950);
+  }
+  .annulation .fermer {
+    display: flex;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    color: rgb(255 255 255 / 0.5);
+  }
+
+  .barre-accueil {
+    position: absolute;
+    left: 50%;
+    bottom: 8px;
+    width: 134px;
+    height: 5px;
+    margin-left: -67px;
+    border-radius: 999px;
+    background: #fff;
+    z-index: 50;
+  }
+
+  /* Le doigt fictif */
+  .doigt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 44px;
+    height: 44px;
+    margin: -22px 0 0 -22px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.26);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.4), 0 6px 18px rgb(0 0 0 / 0.35);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    z-index: 60;
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+</style>
+</head>
+<body>
+<div id="ecran" aria-hidden="true">
+  <div class="statut">
+    <div class="heure">9:41</div>
+    <div class="ilot"></div>
+    <div class="icones">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="#fff"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="#fff"><path d="M8 2.4c2.3 0 4.4.9 6 2.4l1.1-1.2C13.2 1.8 10.7.7 8 .7S2.8 1.8.9 3.6L2 4.8c1.6-1.5 3.7-2.4 6-2.4Z"/><path d="M8 5.8c1.4 0 2.6.5 3.6 1.4l1.1-1.2C11.5 4.8 9.8 4.1 8 4.1s-3.5.7-4.7 1.9l1.1 1.2c1-.9 2.2-1.4 3.6-1.4Z"/><path d="M8 9.2c.5 0 1 .2 1.3.5L8 11.2 6.7 9.7c.3-.3.8-.5 1.3-.5Z"/></svg>
+      <svg width="27" height="13" viewBox="0 0 27 13" fill="none"><rect x="0.5" y="0.5" width="23" height="12" rx="3.8" stroke="#fff" stroke-opacity="0.35"/><rect x="2" y="2" width="20" height="9" rx="2.5" fill="#fff"/><path d="M25 4.5v4c.8-.3 1.3-1.1 1.3-2s-.5-1.7-1.3-2Z" fill="#fff" fill-opacity="0.4"/></svg>
+    </div>
+  </div>
+
+  <main>
+    <header><h1>Pile</h1></header>
+    <section>
+      <h2>À regarder</h2>
+      <nav class="tris">
+        <span class="tri ici">À rattraper</span>
+        <span class="tri">Récent</span>
+        <span class="tri">A-Z</span>
+      </nav>
+      <ul class="pile" id="pile"></ul>
+    </section>
+  </main>
+
+  <div class="annulation" id="annulation">
+    <div class="pilule">
+      <span class="libelle" id="libelle">Vu S2E7</span>
+      <span class="annuler">Annuler</span>
+      <span class="fermer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+    </div>
+  </div>
+
+  <nav class="onglets">
+    <div class="capsule">
+      <span class="onglet actif"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="2"/><path d="M6 6h12M8 3h8"/></svg>Pile</span>
+      <span class="onglet"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>Découvrir</span>
+      <span class="onglet"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3"/><path d="M3.5 19.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><circle cx="16.5" cy="9.5" r="2.4"/><path d="M16.5 14.7c2.4.3 4 2 4 4.3"/></svg>Amis</span>
+      <span class="onglet"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 19.5c0-3.6 3-6 7-6s7 2.4 7 6"/></svg>Profil</span>
+    </div>
+  </nav>
+
+  <div class="doigt" id="doigt"></div>
+  <div class="barre-accueil"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var IMG = 'https://image.tmdb.org/t/p/';
+
+  // L'ordre « À rattraper » (le défaut) : le plus d'épisodes restants d'abord,
+  // puis le titre — comme COMPARATEURS.restant dans src/lib/watch/accueil.ts.
+  var CARTES = [
+    { id: 'bear', titre: 'The Bear', affiche: '/iaJfffjCqXATU5msr4PAgOWLMl4.jpg',
+      avant: ['S4E2 · La soubise', 9], apres: ['S4E3 · La Saint-Jacques', 8] },
+    { id: 'andor', titre: 'Star Wars : Andor', affiche: '/wj0F4fU0jdsZI1cjiUSfeuE28y1.jpg',
+      avant: ['S2E5 · J’ai des amis un peu partout', 8] },
+    { id: 'severance', titre: 'Severance', affiche: '/xmjW474DJ27bqTYNvS4MvraJgiQ.jpg',
+      avant: ['S2E7 · Chikhai Bardo', 4], apres: ['S2E8 · Doux vitriol', 3] },
+    { id: 'tlou', titre: 'The Last of Us', affiche: '/4pMd9VAdqm96KA2W4X8yetgc7EF.jpg',
+      avant: ['S2E4 · Jour un', 4] },
+    { id: 'slow', titre: 'Slow Horses', affiche: '/uAU6AFatRCIwthPRJ16Tcf7pSXy.jpg',
+      avant: ['S5E4 · Missiles', 3] }
+  ];
+
+  var COCHE = function (taille) {
+    return '<svg width="' + taille + '" height="' + taille + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 12.5 4 4 8.5-8.5"/></svg>';
+  };
+
+  function texte(ep, classe) {
+    var n = ep[1];
+    return '<span class="texte ' + classe + '">' +
+      '<span class="episode">' + ep[0] + '</span>' +
+      '<span class="reste">' + n + ' épisode' + (n > 1 ? 's' : '') + ' à voir</span>' +
+      '</span>';
+  }
+
+  var pile = document.getElementById('pile');
+  var el = {};
+  CARTES.forEach(function (c) {
+    var li = document.createElement('li');
+    li.className = 'carte';
+    li.innerHTML =
+      '<img class="halo" alt="" src="' + IMG + 'w154' + c.affiche + '">' +
+      '<div class="revele">' + COCHE(30) + '</div>' +
+      '<div class="contenu">' +
+        '<img class="affiche" alt="" src="' + IMG + 'w342' + c.affiche + '">' +
+        '<span class="textes">' +
+          '<span class="titre">' + c.titre + '</span>' +
+          '<span class="variantes" style="position:relative;display:block">' +
+            texte(c.avant, 'avant') + (c.apres ? texte(c.apres, 'suite') : '') +
+          '</span>' +
+        '</span>' +
+        '<span class="coche"><span class="blanc"></span>' + COCHE(26) + '</span>' +
+      '</div>';
+    pile.appendChild(li);
+    el[c.id] = {
+      li: li,
+      revele: li.querySelector('.revele'),
+      contenu: li.querySelector('.contenu'),
+      avant: li.querySelector('.texte.avant'),
+      suite: li.querySelector('.texte.suite'),
+      coche: li.querySelector('.coche'),
+      blanc: li.querySelector('.coche .blanc'),
+      svg: li.querySelector('.coche svg')
+    };
+  });
+
+  var ecran = document.getElementById('ecran');
+  var doigt = document.getElementById('doigt');
+  var annulation = document.getElementById('annulation');
+  var libelle = document.getElementById('libelle');
+
+  // ---------------------------------------------------------------- mise à l'échelle
+  function ajuster() {
+    var s = window.innerWidth / 390;
+    ecran.style.transform = 'scale(' + s + ')';
+    document.body.style.height = (844 * s) + 'px';
+  }
+  ajuster();
+  window.addEventListener('resize', ajuster);
+
+  // ---------------------------------------------------------------- courbes
+  function bezier(x1, y1, x2, y2) {
+    function a(p1, p2) { return 1 - 3 * p2 + 3 * p1; }
+    function b(p1, p2) { return 3 * p2 - 6 * p1; }
+    function c(p1) { return 3 * p1; }
+    function calc(t, p1, p2) { return ((a(p1, p2) * t + b(p1, p2)) * t + c(p1)) * t; }
+    function pente(t, p1, p2) { return 3 * a(p1, p2) * t * t + 2 * b(p1, p2) * t + c(p1); }
+    return function (x) {
+      if (x <= 0) return 0;
+      if (x >= 1) return 1;
+      var t = x;
+      for (var i = 0; i < 8; i++) {
+        var d = pente(t, x1, x2);
+        if (Math.abs(d) < 1e-6) break;
+        t -= (calc(t, x1, x2) - x) / d;
+      }
+      t = Math.min(1, Math.max(0, t));
+      return calc(t, y1, y2);
+    };
+  }
+  var easeOut = bezier(0, 0, 0.2, 1);       // Tailwind ease-out
+  var easeInOut = bezier(0.4, 0, 0.2, 1);   // Tailwind ease-in-out
+  var glisse = bezier(0.45, 0.05, 0.3, 1);  // le pouce qui balaie
+
+  function seg(t, a, b, f) {
+    if (t <= a) return 0;
+    if (t >= b) return 1;
+    return (f || easeOut)((t - a) / (b - a));
+  }
+  function lerp(a, b, p) { return a + (b - a) * p; }
+
+  // ---------------------------------------------------------------- scénario
+  // Constantes de up-next-card.tsx
+  var SEUIL = 80, ENGAGEMENT = 10, COURSE_MAX = 140;
+  var PAS = 132; // hauteur d'une carte (120) + gap-3 (12)
+
+  var DUREE = 10.8;
+  var T = {
+    // 1. balayage de Severance
+    apparait1: 0.7, appui1: 1.0, glisse1: 1.08, lache1: 1.85,
+    toast1: 2.3, recompose1: 3.2,
+    // 2. appui sur la coche de The Bear
+    apparait2: 4.4, appui2: 4.85, lache2: 5.0,
+    toast2: 5.45, recompose2: 6.6,
+    // 3. retour en fondu
+    toastFin: 8.5, fondu: 9.1, remise: 9.6, retour: 9.75
+  };
+  var X0 = 252, X1 = 130; // course du doigt sur la carte balayée
+
+  function rendre(t) {
+    if (t >= T.remise) t = 0; // l'état initial, prêt pour le fondu de retour
+    var ulTop = pile.offsetTop;
+
+    // --- recomposition de la liste ----------------------------------------
+    // La carte cochée s'efface, sa voisine remonte à sa place, puis elle
+    // revient un rang plus bas avec l'épisode suivant.
+    function recompose(a) {
+      return {
+        monte: seg(t, a + 0.1, a + 0.55, easeInOut),
+        sort: seg(t, a, a + 0.18),
+        passe: t >= a + 0.3,
+        entre: seg(t, a + 0.4, a + 0.7)
+      };
+    }
+    var R1 = recompose(T.recompose1), R2 = recompose(T.recompose2);
+    var rang = {
+      bear: R2.passe ? 1 : 0,
+      andor: lerp(1, 0, R2.monte),
+      severance: R1.passe ? 3 : 2,
+      tlou: lerp(3, 2, R1.monte),
+      slow: 4
+    };
+    function presence(R) {
+      return R.passe ? R.entre : 1 - R.sort;
+    }
+    var glisseEntree = {
+      severance: R1.passe ? 1 - R1.entre : 0,
+      bear: R2.passe ? 1 - R2.entre : 0
+    };
+
+    // --- 1. balayage -----------------------------------------------------
+    var xDoigt = X0, dx = 0, progression = 0;
+    if (t >= T.glisse1 && t < T.lache1) {
+      xDoigt = lerp(X0, X1, glisse((t - T.glisse1) / (T.lache1 - T.glisse1)));
+    } else if (t >= T.lache1) {
+      xDoigt = X1;
+    }
+    var ecart = xDoigt - X0;
+    var dxLache = Math.max(-COURSE_MAX, Math.min(0, X1 - X0));
+    if (t < T.lache1) {
+      dx = Math.abs(ecart) < ENGAGEMENT ? 0 : Math.max(-COURSE_MAX, Math.min(0, ecart));
+      progression = Math.min(1, Math.abs(dx) / SEUIL);
+    } else {
+      // setDx(0) : la carte revient en transition-transform duration-300 ease-out,
+      // la coche découverte s'éteint au même rythme.
+      var retour = seg(t, T.lache1, T.lache1 + 0.3);
+      dx = dxLache * (1 - retour);
+      progression = Math.min(1, Math.abs(dxLache) / SEUIL) * (1 - retour);
+    }
+
+    // marque : opacité 0.45 + coche blanche, transition 300 ms ease-out
+    var m1 = R1.passe ? 0 : seg(t, T.lache1, T.lache1 + 0.3);
+    var m2 = R2.passe ? 0 : seg(t, T.lache2, T.lache2 + 0.3);
+    var v1 = R1.passe ? 1 : 0;
+    var v2 = R2.passe ? 1 : 0;
+
+    // active:scale-[0.96] sur la coche de The Bear
+    var presse = seg(t, T.appui2, T.appui2 + 0.12) * (1 - seg(t, T.lache2, T.lache2 + 0.3));
+
+    CARTES.forEach(function (c) {
+      var e = el[c.id];
+      var marque = c.id === 'severance' ? m1 : c.id === 'bear' ? m2 : 0;
+      var suite = c.id === 'severance' ? v1 : c.id === 'bear' ? v2 : 0;
+      var pres = c.id === 'severance' ? presence(R1) : c.id === 'bear' ? presence(R2) : 1;
+      var decale = (glisseEntree[c.id] || 0) * 10;
+      e.li.style.transform = 'translate3d(0,' + (rang[c.id] * PAS - decale).toFixed(2) + 'px,0)' +
+        (pres < 1 ? ' scale(' + (0.98 + 0.02 * pres).toFixed(4) + ')' : '');
+      e.li.style.opacity = ((1 - 0.55 * marque) * pres).toFixed(3);
+      e.li.style.visibility = pres <= 0.001 ? 'hidden' : '';
+      e.blanc.style.opacity = marque.toFixed(3);
+      var gris = Math.round(lerp(255, 10, marque));
+      e.svg.style.color = 'rgb(' + gris + ',' + gris + ',' + gris + ')';
+      if (e.suite) {
+        e.avant.style.opacity = (1 - suite).toFixed(3);
+        e.suite.style.opacity = suite.toFixed(3);
+      }
+      if (c.id === 'severance') {
+        e.contenu.style.transform = 'translate3d(' + dx.toFixed(2) + 'px,0,0)';
+        e.revele.style.opacity = progression.toFixed(3);
+      }
+      e.coche.style.transform = c.id === 'bear' ? 'scale(' + (1 - 0.04 * presse).toFixed(4) + ')' : '';
+    });
+
+    // --- le doigt ----------------------------------------------------------
+    var dOp = 0, dS = 1, dX = X0, dY = ulTop + rang.severance * PAS + 60;
+    if (t < T.apparait2 - 0.2) {
+      var in1 = seg(t, T.apparait1, T.apparait1 + 0.25);
+      var out1 = seg(t, T.lache1, T.lache1 + 0.35);
+      dOp = in1 * (1 - out1);
+      dS = lerp(1.25, 1, in1) * lerp(1, 0.86, seg(t, T.appui1, T.appui1 + 0.1)) * lerp(1, 1 / 0.86, out1);
+      dX = xDoigt - 10 * out1;
+      dY = ulTop + 2 * PAS + 60;
+    } else {
+      var in2 = seg(t, T.apparait2, T.apparait2 + 0.3);
+      var out2 = seg(t, T.lache2, T.lache2 + 0.35);
+      dOp = in2 * (1 - out2);
+      dS = lerp(1.25, 1, in2) * lerp(1, 0.86, seg(t, T.appui2, T.appui2 + 0.1)) * lerp(1, 1 / 0.86, out2);
+      // la coche de la première carte : right-3 + w-20/2
+      dX = lerp(312, 322, in2);
+      dY = ulTop + 60 + lerp(14, 0, in2);
+    }
+    doigt.style.opacity = (dOp * 0.95).toFixed(3);
+    doigt.style.transform = 'translate3d(' + dX.toFixed(2) + 'px,' + dY.toFixed(2) + 'px,0) scale(' + dS.toFixed(4) + ')';
+
+    // --- le bandeau d'annulation -------------------------------------------
+    var tIn = seg(t, T.toast1, T.toast1 + 0.2);
+    var tOut = seg(t, T.toastFin, T.toastFin + 0.3);
+    annulation.style.opacity = (tIn * (1 - tOut)).toFixed(3);
+    annulation.style.transform = 'translate3d(0,' + (6 * (1 - tIn) + 4 * tOut).toFixed(2) + 'px,0)';
+    var mot = t >= T.toast2 ? 'Vu S4E2' : 'Vu S2E7';
+    if (libelle.textContent !== mot) libelle.textContent = mot;
+
+    // --- fondu de bouclage ------------------------------------------------
+    var tReel = arguments[1];
+    var fondu = 1;
+    if (tReel >= T.fondu && tReel < T.remise) fondu = 1 - seg(tReel, T.fondu, T.remise, easeInOut);
+    else if (tReel >= T.remise && tReel < T.retour) fondu = 0;
+    else if (tReel >= T.retour) fondu = seg(tReel, T.retour, DUREE, easeInOut);
+    pile.style.opacity = fondu.toFixed(3);
+  }
+
+  function rendreA(t) { rendre(t, t); }
+
+  // ---------------------------------------------------------------- lecture
+  var params = new URLSearchParams(location.search);
+  var fige = params.get('t');
+  var reduit = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (fige !== null) {
+    rendreA(parseFloat(fige) || 0);
+    return;
+  }
+  if (reduit) {
+    rendreA(0);
+    return;
+  }
+
+  var debut = null;
+  function image(maintenant) {
+    if (debut === null) debut = maintenant;
+    rendreA(((maintenant - debut) / 1000) % DUREE);
+    requestAnimationFrame(image);
+  }
+  rendreA(0);
+  // On attend la police et les affiches pour que la première boucle ne
+  // commence pas sur un écran à moitié chargé.
+  var pret = [document.fonts ? document.fonts.ready : Promise.resolve()];
+  Array.prototype.forEach.call(document.images, function (img) {
+    if (!img.complete) pret.push(new Promise(function (ok) { img.onload = img.onerror = ok; }));
+  });
+  Promise.race([Promise.all(pret), new Promise(function (ok) { setTimeout(ok, 2500); })])
+    .then(function () { requestAnimationFrame(image); });
+
+  var mq = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (mq && mq.addEventListener) {
+    mq.addEventListener('change', function (e) { if (e.matches) location.reload(); });
+  }
+})();
+</script>
+</body>
+</html>

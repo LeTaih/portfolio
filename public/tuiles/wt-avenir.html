@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Watchtracker · À venir</title>
+<link rel="preconnect" href="https://image.tmdb.org" crossorigin>
+<link rel="preload" href="wt-inter-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="wt-inter-500.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="wt-inter-600.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  /* Inter auto-hébergée (sous-ensemble latin, celui que charge next/font) */
+  @font-face { font-family: Inter; font-style: normal; font-weight: 400; font-display: swap; src: url(wt-inter-400.woff2) format('woff2'); }
+  @font-face { font-family: Inter; font-style: normal; font-weight: 500; font-display: swap; src: url(wt-inter-500.woff2) format('woff2'); }
+  @font-face { font-family: Inter; font-style: normal; font-weight: 600; font-display: swap; src: url(wt-inter-600.woff2) format('woff2'); }
+  @font-face { font-family: Inter; font-style: normal; font-weight: 700; font-display: swap; src: url(wt-inter-700.woff2) format('woff2'); }
+
+  /* Tokens recopiés du @theme de watchtracker/src/app/globals.css */
+  :root {
+    --voile-doux: rgb(218 112 214 / 0.028);
+    --voile: rgb(218 112 214 / 0.042);
+    --voile-fort: rgb(218 112 214 / 0.075);
+    --filet-doux: rgb(232 178 230 / 0.07);
+    --filet: rgb(232 178 230 / 0.11);
+    --filet-fort: rgb(232 178 230 / 0.17);
+    --reflet: inset 0 1px 0 rgb(248 232 247 / 0.09);
+    --blur-halo: 48px;
+    --blur-surface: 40px;
+    --blur-controle: 20px;
+    --neutral-950: #0a0a0a;
+  }
+  /* Le filet (inset-ring) et le reflet (shadow) se composent comme dans
+     Tailwind v4 : deux variables non héritées, une seule box-shadow. */
+  @property --tw-inset-ring-shadow { syntax: "*"; inherits: false; initial-value: 0 0 #0000; }
+  @property --tw-inset-ring-color { syntax: "*"; inherits: false; initial-value: currentcolor; }
+  @property --tw-shadow { syntax: "*"; inherits: false; initial-value: 0 0 #0000; }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; border: 0 solid; }
+  html, body { background: #000; overflow: hidden; color-scheme: dark; }
+  body {
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    line-height: 1.5;
+    color: #fff;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  img { display: block; max-width: 100%; }
+  ul, ol { list-style: none; }
+
+  /* ---- Les utilitaires Tailwind employés par les composants recopiés ---- */
+  .block { display: block; } .inline-block { display: inline-block; } .inline-flex { display: inline-flex; }
+  .flex { display: flex; } .hidden { display: none; }
+  .flex-col { flex-direction: column; } .flex-wrap { flex-wrap: wrap; }
+  .flex-1 { flex: 1 1 0%; } .shrink-0 { flex-shrink: 0; } .min-w-0 { min-width: 0; }
+  .items-center { align-items: center; } .items-start { align-items: flex-start; }
+  .justify-between { justify-content: space-between; } .justify-center { justify-content: center; } .justify-end { justify-content: flex-end; }
+  .self-start { align-self: flex-start; }
+  .gap-1 { gap: 4px; } .gap-1\.5 { gap: 6px; } .gap-2 { gap: 8px; } .gap-3 { gap: 12px; }
+  .relative { position: relative; } .absolute { position: absolute; } .inset-0 { inset: 0; }
+  .overflow-hidden { overflow: hidden; }
+  .p-3 { padding: 12px; } .p-4 { padding: 16px; }
+  .px-1 { padding-left: 4px; padding-right: 4px; } .px-3 { padding-left: 12px; padding-right: 12px; }
+  .px-3\.5 { padding-left: 14px; padding-right: 14px; } .px-4 { padding-left: 16px; padding-right: 16px; }
+  .px-5 { padding-left: 20px; padding-right: 20px; }
+  .py-1\.5 { padding-top: 6px; padding-bottom: 6px; } .py-2 { padding-top: 8px; padding-bottom: 8px; }
+  .py-2\.5 { padding-top: 10px; padding-bottom: 10px; } .py-3 { padding-top: 12px; padding-bottom: 12px; }
+  .pl-2\.5 { padding-left: 10px; } .pr-2 { padding-right: 8px; } .pr-3\.5 { padding-right: 14px; }
+  .pt-4 { padding-top: 16px; } .pb-1 { padding-bottom: 4px; } .pb-32 { padding-bottom: 128px; }
+  .mt-0\.5 { margin-top: 2px; } .mt-1 { margin-top: 4px; } .mt-1\.5 { margin-top: 6px; } .mt-2 { margin-top: 8px; }
+  .mt-3 { margin-top: 12px; } .mt-4 { margin-top: 16px; } .mt-5 { margin-top: 20px; } .mt-6 { margin-top: 24px; }
+  .mt-8 { margin-top: 32px; } .mb-4 { margin-bottom: 16px; } .-mx-4 { margin-left: -16px; margin-right: -16px; }
+  .h-9 { height: 36px; } .w-9 { width: 36px; } .h-11 { height: 44px; } .w-11 { width: 44px; } .w-14 { width: 56px; }
+  .h-24 { height: 96px; } .w-16 { width: 64px; } .w-full { width: 100%; } .h-full { height: 100%; }
+  .min-h-11 { min-height: 44px; } .max-w-40 { max-width: 160px; } .max-w-full { max-width: 100%; }
+  .aspect-video { aspect-ratio: 16 / 9; }
+  .rounded-xl { border-radius: 12px; } .rounded-2xl { border-radius: 16px; } .rounded-3xl { border-radius: 24px; } .rounded-full { border-radius: 9999px; }
+  .object-cover { object-fit: cover; }
+  .text-xs { font-size: 12px; line-height: 16px; } .text-sm { font-size: 14px; line-height: 20px; }
+  .text-lg { font-size: 18px; line-height: 28px; } .text-xl { font-size: 20px; line-height: 28px; }
+  .text-\[13px\] { font-size: 13px; }
+  .leading-relaxed { line-height: 1.625; }
+  .font-medium { font-weight: 500; } .font-semibold { font-weight: 600; } .italic { font-style: italic; }
+  .uppercase { text-transform: uppercase; } .tracking-tight { letter-spacing: -0.025em; } .tracking-wider { letter-spacing: 0.05em; }
+  .tabular-nums { font-variant-numeric: tabular-nums; } .text-center { text-align: center; }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .text-white { color: #fff; } .text-white\/30 { color: rgb(255 255 255 / 0.3); } .text-white\/40 { color: rgb(255 255 255 / 0.4); }
+  .text-white\/50 { color: rgb(255 255 255 / 0.5); } .text-white\/60 { color: rgb(255 255 255 / 0.6); }
+  .text-white\/70 { color: rgb(255 255 255 / 0.7); } .text-white\/80 { color: rgb(255 255 255 / 0.8); }
+  .text-neutral-950 { color: var(--neutral-950); } .text-neutral-950\/50 { color: rgb(10 10 10 / 0.5); }
+  .bg-white { background-color: #fff; } .bg-black\/30 { background-color: rgb(0 0 0 / 0.3); }
+  .bg-voile { background-color: var(--voile); } .bg-voile-fort { background-color: var(--voile-fort); }
+  .odd\:bg-voile-doux:nth-child(odd) { background-color: var(--voile-doux); }
+  .border-t { border-top-width: 1px; } .border-filet { border-color: var(--filet); }
+  .inset-ring-1 { --tw-inset-ring-shadow: inset 0 0 0 1px var(--tw-inset-ring-color); box-shadow: var(--tw-inset-ring-shadow), var(--tw-shadow); }
+  .inset-ring-filet { --tw-inset-ring-color: var(--filet); } .inset-ring-filet-fort { --tw-inset-ring-color: var(--filet-fort); }
+  .inset-ring-white { --tw-inset-ring-color: #fff; }
+  .shadow-reflet { --tw-shadow: var(--reflet); box-shadow: var(--tw-inset-ring-shadow), var(--tw-shadow); }
+  .backdrop-blur-surface { -webkit-backdrop-filter: blur(var(--blur-surface)); backdrop-filter: blur(var(--blur-surface)); }
+  .backdrop-blur-controle { -webkit-backdrop-filter: blur(var(--blur-controle)); backdrop-filter: blur(var(--blur-controle)); }
+  /* absolute inset-0 h-full w-full scale-125 object-cover opacity-30 blur-halo saturate-150 */
+  .halo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.25); opacity: 0.3; filter: blur(var(--blur-halo)) saturate(1.5); pointer-events: none; }
+
+  
+  .mt-9 { margin-top: 36px; } .mb-6 { margin-bottom: 24px; } .px-4.pt-7 { padding-top: 28px; } .pb-4 { padding-bottom: 16px; }
+  .font-bold { font-weight: 700; } .text-3xl { font-size: 30px; line-height: 36px; }
+
+  /* UpNextCard (up-next-card.tsx), comme dans wt-pile */
+  .carte { position: relative; height: 120px; overflow: hidden; border-radius: 24px; background: var(--voile); box-shadow: inset 0 0 0 1px var(--filet), var(--reflet); -webkit-backdrop-filter: blur(var(--blur-surface)); backdrop-filter: blur(var(--blur-surface)); }
+  .carte .contenu { position: relative; display: flex; align-items: stretch; gap: 12px; padding: 12px; height: 100%; }
+  .carte .affiche { width: 64px; height: 96px; flex-shrink: 0; border-radius: 12px; object-fit: cover; background: var(--voile-fort); }
+  .carte .textes { display: block; min-width: 0; flex: 1; }
+  .carte .titre { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 16px; line-height: 24px; font-weight: 500; }
+  .carte .episode { display: block; margin-top: 2px; font-size: 14px; line-height: 20px; color: rgb(255 255 255 / 0.6); }
+  .carte .reste { display: block; margin-top: 4px; font-size: 12px; line-height: 16px; color: rgb(255 255 255 / 0.4); font-variant-numeric: tabular-nums; }
+  .carte .coche { display: flex; width: 80px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 999px; color: #fff; background: var(--voile-fort); box-shadow: inset 0 0 0 1px var(--filet-fort), var(--reflet); -webkit-backdrop-filter: blur(var(--blur-controle)); backdrop-filter: blur(var(--blur-controle)); }
+  .tri { border-radius: 999px; padding: 6px 12px; font-size: 14px; line-height: 20px; background: var(--voile); color: rgb(255 255 255 / 0.6); box-shadow: inset 0 0 0 1px var(--filet); -webkit-backdrop-filter: blur(var(--blur-controle)); backdrop-filter: blur(var(--blur-controle)); }
+  .tri.ici { background: #fff; color: var(--neutral-950); font-weight: 500; box-shadow: inset 0 0 0 1px #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
+
+  /* La notification iOS (le service worker : showNotification(title, { body, icon })) */
+  .notif { position: absolute; left: 8px; right: 8px; top: 0; z-index: 70; display: flex; align-items: center; gap: 11px; padding: 13px 16px 13px 13px; border-radius: 26px; background: rgb(38 38 40 / 0.62); box-shadow: inset 0 0.5px 0 rgb(255 255 255 / 0.22), inset 0 0 0 0.5px rgb(255 255 255 / 0.08), 0 12px 32px rgb(0 0 0 / 0.45); -webkit-backdrop-filter: blur(28px) saturate(1.8); backdrop-filter: blur(28px) saturate(1.8); opacity: 0; will-change: transform, opacity; }
+  .notif img { width: 38px; height: 38px; border-radius: 9px; flex-shrink: 0; }
+  .notif .corps { min-width: 0; flex: 1; font-size: 15px; line-height: 20px; letter-spacing: -0.01em; }
+  .notif .ligne { display: flex; align-items: baseline; gap: 8px; }
+  .notif .titre { flex: 1; min-width: 0; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .notif .quand { flex-shrink: 0; font-size: 13px; color: rgb(235 235 245 / 0.6); }
+  .notif .texte { color: rgb(255 255 255 / 0.92); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* L'écran : un iPhone de 390 × 844 points, mis à l'échelle de l'iframe. */
+  #ecran { position: absolute; top: 0; left: 0; width: 390px; height: 844px; overflow: hidden; background: #000; transform-origin: 0 0; }
+  .page { position: absolute; inset: 0; overflow: hidden; }
+  /* Le body porte pt-[env(safe-area-inset-top)] : 47 px en PWA black-translucent. */
+  .defile { position: relative; padding-top: 47px; will-change: transform; }
+  main { position: relative; }
+
+  /* Barre d'état iOS */
+  .statut { position: absolute; inset: 0 0 auto 0; height: 47px; z-index: 30; pointer-events: none; }
+  .statut .heure { position: absolute; left: 0; width: 132px; top: 15px; text-align: center; font-size: 17px; font-weight: 600; line-height: 22px; letter-spacing: -0.01em; }
+  .statut .icones { position: absolute; right: 0; width: 132px; top: 19px; display: flex; justify-content: center; align-items: center; gap: 6px; }
+  .ilot { position: absolute; top: 11px; left: 50%; width: 124px; height: 36px; margin-left: -62px; border-radius: 999px; background: #000; }
+
+  /* BackLink : puce de verre avec chevron */
+  .retour { display: inline-flex; max-width: 100%; align-items: center; gap: 4px; border-radius: 9999px; background: var(--voile); padding: 8px 14px 8px 10px; font-size: 14px; line-height: 20px; color: rgb(255 255 255 / 0.7); box-shadow: inset 0 0 0 1px var(--filet); -webkit-backdrop-filter: blur(var(--blur-controle)); backdrop-filter: blur(var(--blur-controle)); }
+
+  /* Logo détouré : max-h-14 w-auto max-w-full object-contain object-left */
+  .logo { max-height: 56px; width: auto; height: auto; max-width: 100%; object-fit: contain; object-position: left; }
+
+  /* Le <select> natif de « J'en suis là », tel que Safari iOS le dessine */
+  .choix { position: relative; display: flex; align-items: center; white-space: nowrap; overflow: hidden; padding-right: 34px; }
+  .choix .fleche { position: absolute; right: 16px; top: 50%; margin-top: -5px; }
+
+  /* Pastille de note : le blanc plein se pose par-dessus le verre */
+  .pastille { position: relative; overflow: hidden; }
+  .pastille .plein { position: absolute; inset: 0; border-radius: inherit; background: #fff; opacity: 0; }
+  .pastille b { position: relative; font-weight: inherit; }
+  .rangee { display: flex; gap: 6px; overflow: hidden; padding-bottom: 4px; }
+
+  /* Le champ de texte, au repos */
+  .champ { height: 88px; }
+
+  /* BottomNav */
+  .onglets { position: absolute; left: 0; right: 0; bottom: 0; z-index: 20; padding: 0 16px 34px; }
+  .onglets .capsule { display: flex; align-items: stretch; justify-content: space-around; overflow: hidden; border-radius: 999px; background: var(--voile-fort); box-shadow: inset 0 0 0 1px var(--filet), inset 0 1px 0 rgb(248 232 247 / 0.09), 0 12px 40px rgb(0 0 0 / 0.55); -webkit-backdrop-filter: blur(var(--blur-surface)); backdrop-filter: blur(var(--blur-surface)); }
+  .onglet { display: flex; min-width: 0; flex: 1; flex-direction: column; align-items: center; gap: 2px; padding: 8px 0; font-size: 10px; line-height: 15px; font-weight: 500; color: rgb(255 255 255 / 0.4); }
+
+  /* Le bandeau d'annulation (annulation.tsx) */
+  .annulation { position: absolute; left: 0; right: 0; bottom: calc(88px + 34px); z-index: 40; display: flex; justify-content: center; padding: 0 16px; opacity: 0; pointer-events: none; }
+  .annulation .pilule { display: flex; align-items: center; gap: 8px; border-radius: 999px; padding: 8px 8px 8px 20px; background: var(--voile-fort); box-shadow: inset 0 0 0 1px var(--filet-fort), var(--reflet); -webkit-backdrop-filter: blur(var(--blur-surface)); backdrop-filter: blur(var(--blur-surface)); }
+  .annulation .libelle { font-size: 14px; line-height: 20px; color: rgb(255 255 255 / 0.8); white-space: nowrap; }
+  .annulation .annuler { flex-shrink: 0; border-radius: 999px; padding: 8px 16px; font-size: 14px; line-height: 20px; background: #fff; font-weight: 600; color: var(--neutral-950); }
+  .annulation .fermer { display: flex; width: 36px; height: 36px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 999px; color: rgb(255 255 255 / 0.5); }
+
+  .barre-accueil { position: absolute; left: 50%; bottom: 8px; width: 134px; height: 5px; margin-left: -67px; border-radius: 999px; background: #fff; z-index: 50; }
+
+  /* Le doigt fictif */
+  .doigt { position: absolute; left: 0; top: 0; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 999px; background: rgb(255 255 255 / 0.26); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.4), 0 6px 18px rgb(0 0 0 / 0.35); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); opacity: 0; z-index: 60; pointer-events: none; will-change: transform, opacity; }
+
+  .onglet.actif { color: #fff; }
+</style>
+</head>
+<body>
+<div id="ecran" aria-hidden="true">
+  <div class="statut">
+    <div class="heure">9:41</div>
+    <div class="ilot"></div>
+    <div class="icones">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="#fff"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="#fff"><path d="M8 2.4c2.3 0 4.4.9 6 2.4l1.1-1.2C13.2 1.8 10.7.7 8 .7S2.8 1.8.9 3.6L2 4.8c1.6-1.5 3.7-2.4 6-2.4Z"/><path d="M8 5.8c1.4 0 2.6.5 3.6 1.4l1.1-1.2C11.5 4.8 9.8 4.1 8 4.1s-3.5.7-4.7 1.9l1.1 1.2c1-.9 2.2-1.4 3.6-1.4Z"/><path d="M8 9.2c.5 0 1 .2 1.3.5L8 11.2 6.7 9.7c.3-.3.8-.5 1.3-.5Z"/></svg>
+      <svg width="27" height="13" viewBox="0 0 27 13" fill="none"><rect x="0.5" y="0.5" width="23" height="12" rx="3.8" stroke="#fff" stroke-opacity="0.35"/><rect x="2" y="2" width="20" height="9" rx="2.5" fill="#fff"/><path d="M25 4.5v4c.8-.3 1.3-1.1 1.3-2s-.5-1.7-1.3-2Z" fill="#fff" fill-opacity="0.4"/></svg>
+    </div>
+  </div>
+
+  <div id="pages">
+    <!-- L'accueil (src/app/page.tsx) : « Nouveautés » y a fusionné, ses annonces sont la colonne « À venir » -->
+    <div class="page"><div class="defile" id="defile">
+      <main class="px-4 pb-4 pt-7" id="accueil"></main>
+    </div></div>
+  </div>
+
+  <nav class="onglets">
+    <div class="capsule">
+      <span class="onglet actif"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="2"/><path d="M6 6h12M8 3h8"/></svg>Pile</span>
+      <span class="onglet"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>Découvrir</span>
+      <span class="onglet"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3"/><path d="M3.5 19.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><circle cx="16.5" cy="9.5" r="2.4"/><path d="M16.5 14.7c2.4.3 4 2 4 4.3"/></svg>Amis</span>
+      <span class="onglet"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 19.5c0-3.6 3-6 7-6s7 2.4 7 6"/></svg>Profil</span>
+    </div>
+  </nav>
+
+  <!-- buildMessage (src/lib/alerts/message.ts) : un épisode → « Série SxEy », son titre en corps -->
+  <div class="notif" id="notif">
+    <img src="wt-avenir/icone-192.png" alt="">
+    <div class="corps">
+      <div class="ligne"><span class="titre">Slow Horses S6E4</span><span class="quand">maintenant</span></div>
+      <div class="texte">Le chat et la souris</div>
+    </div>
+  </div>
+
+  <div class="doigt" id="doigt"></div>
+  <div class="barre-accueil"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var IMG = 'https://image.tmdb.org/t/p/';
+  // Le jour du scénario : mercredi 7 octobre 2026, Slow Horses S6E4 vient de sortir.
+
+  // « À regarder », ordre « À rattraper » (le plus d'épisodes restants d'abord)
+  var A_REGARDER = [
+    { titre: 'The Gentlemen', affiche: '/5Ka1S5FHXKPKRhfrioYVWY7RsG9.jpg', ep: 'S2E3 · Renoncez-vous à Satan ?', reste: 6 },
+    { titre: 'Silo', affiche: '/dxktdopZCOlff10ocoEdn2TXBzl.jpg', ep: 'S3E9 · Adieu', reste: 2 },
+    { titre: 'Slow Horses', affiche: '/uAU6AFatRCIwthPRJ16Tcf7pSXy.jpg', ep: 'S6E4 · Le chat et la souris', reste: 1 }
+  ];
+  // « À venir » : une sortie par œuvre, par date (accueil.ts, voletAVenir)
+  var A_VENIR = [
+    { titre: 'Les Carnets de l’apothicaire', affiche: '/47pSay5Ao7SFeyQBZVkW5ifyhAZ.jpg', ep: 'S1E50 · La Toison de rat-du-feu', quand: '9 oct. · dans 2 jours' },
+    { titre: 'Slow Horses', affiche: '/uAU6AFatRCIwthPRJ16Tcf7pSXy.jpg', ep: 'S6E5 · Sayonara', quand: '14 oct. · dans une semaine' },
+    { titre: 'Tulsa King', affiche: '/rOYLWCdAifpUtPlTf1WHxyaxeMt.jpg', ep: 'S4E1 · Épisode 1', quand: '16 oct. · dans une semaine' },
+    { titre: 'Only Murders in the Building', affiche: '/dEPEwV74c04cF2px4rVFdrD0kMc.jpg', ep: 'S6E1 · Épisode 1', quand: '8 déc. · dans 2 mois' },
+    { titre: 'Dune : Troisième partie', affiche: '/s6r04BVmT2T2Xr6PbZQYHCI7H2r.jpg', ep: 'Film', quand: '15 déc. · dans 2 mois' },
+    { titre: 'Ahsoka', affiche: '/eiJeWeCAEZAmRppnXHiTWDcCd3Q.jpg', ep: 'S2E1 · Épisode 1', quand: '20 janv. · dans 4 mois' },
+    { titre: 'The Studio', affiche: '/clnQO3HfqcsiqinWDkIuvoTXmoC.jpg', ep: 'S2E1 · Épisode 1', quand: '26 mars · dans 6 mois' },
+    { titre: 'Silo', affiche: '/dxktdopZCOlff10ocoEdn2TXBzl.jpg', ep: 'S4E1 · Épisode 1', quand: '8 juil. · dans 9 mois' }
+  ];
+  // Le reste au volet : Carnets E51–E60, Slow Horses E6, Tulsa King E2–E10
+  var SUITE = 20;
+  var A_COMMENCER = { titre: 'Task', affiche: '/mDpbYGDRx98OXlXyPJMtGftQJaS.jpg', ep: 'S1E1 · La croisée des chemins', reste: 7 };
+
+  var CHECK = function (taille) {
+    return '<svg width="' + taille + '" height="' + taille + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 12.5 4 4 8.5-8.5"/></svg>';
+  };
+  var TITRE_SECTION = 'text-[13px] font-semibold uppercase tracking-wider text-white/40';
+
+  function carte(c) {
+    return '<li class="carte">' +
+      '<img class="halo" alt="" src="' + IMG + 'w154' + c.affiche + '">' +
+      '<div class="contenu">' +
+        '<img class="affiche" alt="" src="' + IMG + 'w342' + c.affiche + '">' +
+        '<span class="textes"><span class="titre">' + c.titre + '</span>' +
+          '<span class="episode">' + c.ep + '</span>' +
+          '<span class="reste">' + c.reste + ' épisode' + (c.reste > 1 ? 's' : '') + ' à voir</span></span>' +
+        '<span class="coche">' + CHECK(26) + '</span>' +
+      '</div></li>';
+  }
+  // SortieRow (sortie-row.tsx)
+  function sortie(s) {
+    return '<li class="relative overflow-hidden rounded-3xl bg-voile inset-ring-1 inset-ring-filet backdrop-blur-surface shadow-reflet">' +
+      '<img class="halo" alt="" src="' + IMG + 'w154' + s.affiche + '">' +
+      '<a class="relative flex items-center gap-3 p-3">' +
+        '<img src="' + IMG + 'w342' + s.affiche + '" alt="" class="h-24 w-16 shrink-0 rounded-xl object-cover">' +
+        '<span class="min-w-0 flex-1">' +
+          '<span class="block truncate font-medium">' + s.titre + '</span>' +
+          '<span class="mt-0.5 block truncate text-sm text-white/60">' + s.ep + '</span>' +
+          '<span class="mt-1 block text-xs tabular-nums text-white/40">' + s.quand + '</span>' +
+        '</span>' +
+      '</a></li>';
+  }
+
+  var accueil = document.getElementById('accueil');
+  accueil.innerHTML =
+    '<header class="mb-6"><h1 class="text-3xl font-bold tracking-tight">Pile</h1></header>' +
+    '<section><h2 class="' + TITRE_SECTION + '">À regarder</h2>' +
+      '<nav class="mb-4 mt-3 flex gap-2"><span class="tri ici">À rattraper</span><span class="tri">Récent</span><span class="tri">A-Z</span></nav>' +
+      '<ul class="flex flex-col gap-3">' + A_REGARDER.map(carte).join('') + '</ul></section>' +
+    '<section class="mt-9"><h2 class="' + TITRE_SECTION + '">À venir</h2>' +
+      '<ul class="mt-3 flex flex-col gap-3">' + A_VENIR.map(sortie).join('') + '</ul>' +
+      '<div class="mt-3" id="volet"><div class="flex min-h-11 items-center justify-center rounded-full bg-voile px-4 text-sm text-white/60 inset-ring-1 inset-ring-filet backdrop-blur-controle">Voir ' + SUITE + ' autres sorties</div></div>' +
+    '</section>' +
+    '<section class="mt-9"><h2 class="' + TITRE_SECTION + '">À commencer</h2>' +
+      '<ul class="mt-3 flex flex-col gap-3">' + carte(A_COMMENCER) + '</ul></section>';
+
+  var ecran = document.getElementById('ecran');
+  var doigt = document.getElementById('doigt');
+  var defile = document.getElementById('defile');
+  var pages = document.getElementById('pages');
+  var notif = document.getElementById('notif');
+
+  var echelle = 1;
+  function ajuster() {
+    echelle = window.innerWidth / 390;
+    ecran.style.transform = 'scale(' + echelle + ')';
+    document.body.style.height = (844 * echelle) + 'px';
+  }
+  ajuster();
+  window.addEventListener('resize', ajuster);
+
+  function bezier(x1, y1, x2, y2) {
+    function a(p1, p2) { return 1 - 3 * p2 + 3 * p1; }
+    function b(p1, p2) { return 3 * p2 - 6 * p1; }
+    function c(p1) { return 3 * p1; }
+    function calc(t, p1, p2) { return ((a(p1, p2) * t + b(p1, p2)) * t + c(p1)) * t; }
+    function pente(t, p1, p2) { return 3 * a(p1, p2) * t * t + 2 * b(p1, p2) * t + c(p1); }
+    return function (x) {
+      if (x <= 0) return 0;
+      if (x >= 1) return 1;
+      var t = x;
+      for (var i = 0; i < 8; i++) {
+        var d = pente(t, x1, x2);
+        if (Math.abs(d) < 1e-6) break;
+        t -= (calc(t, x1, x2) - x) / d;
+      }
+      t = Math.min(1, Math.max(0, t));
+      return calc(t, y1, y2);
+    };
+  }
+  var easeOut = bezier(0, 0, 0.2, 1);       // Tailwind ease-out
+  var easeInOut = bezier(0.4, 0, 0.2, 1);   // Tailwind ease-in-out
+  function seg(t, a, b, f) {
+    if (t <= a) return 0;
+    if (t >= b) return 1;
+    return (f || easeOut)((t - a) / (b - a));
+  }
+  function lerp(a, b, p) { return a + (b - a) * p; }
+
+  // Un défilement au doigt : le contenu suit le doigt (accélération), puis
+  // file sur sa lancée et ralentit comme un UIScrollView (décroissance
+  // exponentielle, vitesse continue au lâcher).
+  function defilement(t, g) {
+    var duree = g.t1 - g.t0;
+    if (t <= g.t0) return 0;
+    if (t < g.t1) {
+      var p = (t - g.t0) / duree;
+      return g.drag * (1.5 * p * p - 0.5 * p * p * p);
+    }
+    if (g.coast <= 0) return g.drag;
+    var vitesse = 1.5 * g.drag / duree;
+    var tau = g.coast / vitesse;
+    var x = Math.min(4, (t - g.t1) / tau);
+    return g.drag + g.coast * (1 - Math.exp(-x)) / (1 - Math.exp(-4));
+  }
+
+  // ---------------------------------------------------------------- mesures
+  function haut(el, conteneur) {
+    var y = 0;
+    while (el && el !== conteneur) { y += el.offsetTop; el = el.offsetParent; }
+    return y;
+  }
+  function gauche(el, conteneur) {
+    var x = 0;
+    while (el && el !== conteneur) { x += el.offsetLeft; el = el.offsetParent; }
+    return x;
+  }
+  function centre(el, conteneur) {
+    return { x: gauche(el, conteneur) + el.offsetWidth / 2, y: haut(el, conteneur) + el.offsetHeight / 2 };
+  }
+
+
+  // Le ressort de la bannière iOS : arrive vite, dépasse à peine, se pose.
+  function ressort(p) {
+    if (p <= 0) return 0;
+    if (p >= 1) return 1;
+    return 1 - Math.exp(-6.5 * p) * Math.cos(7.5 * p) * (1 - p * 0.15);
+  }
+
+  // ---------------------------------------------------------------- scénario
+  var DUREE = 10.9;
+  var T = {
+    notifEntre: 0.7, notifSort: 3.55,
+    g: { apparait: 4.05, t0: 4.30, t1: 4.85 },
+    fondu: 9.6, remise: 10.2, retour: 10.3
+  };
+  var NOTIF_Y = 52; // sous la barre d'état et l'îlot
+  var M = null;
+  function mesurer() {
+    var volet = document.getElementById('volet');
+    // Le défilement s'arrête quand le volet « Voir 20 autres sorties » se pose
+    // au-dessus de la barre d'onglets (haut à 755).
+    var S = haut(volet, defile) + volet.offsetHeight - 737;
+    var drag = S / 2.36;
+    M = { S: S, g: { t0: T.g.t0, t1: T.g.t1, drag: drag, coast: S - drag } };
+  }
+
+  function rendre(t, tReel) {
+    if (!M) mesurer();
+    if (t >= T.remise) t = 0;
+
+    // --- la notification
+    var entre = ressort(Math.max(0, (t - T.notifEntre) / 0.75));
+    var sort = seg(t, T.notifSort, T.notifSort + 0.38, bezier(0.4, 0, 1, 1));
+    var y = lerp(-120, NOTIF_Y, entre) - (NOTIF_Y + 130) * sort;
+    notif.style.opacity = (t < T.notifEntre ? 0 : Math.min(1, (t - T.notifEntre) / 0.12) * (1 - sort * sort)).toFixed(3);
+    notif.style.transform = 'translate3d(0,' + y.toFixed(2) + 'px,0) scale(' + lerp(0.96, 1, Math.min(1, entre)).toFixed(4) + ')';
+
+    // --- le défilement
+    var s = defilement(t, M.g);
+    defile.style.transform = 'translate3d(0,' + (-s).toFixed(2) + 'px,0)';
+
+    // --- le doigt : il pousse la page vers le haut, puis se lève
+    var g = T.g;
+    var dEntre = seg(t, g.apparait, g.apparait + 0.25);
+    var leve = seg(t, g.t1, g.t1 + 0.3);
+    var tire = defilement(Math.min(t, g.t1), M.g);
+    var op = dEntre * (1 - leve);
+    var ech = lerp(1.25, 1, dEntre) * lerp(1, 0.86, seg(t, g.t0, g.t0 + 0.1)) * lerp(1, 1 / 0.86, leve);
+    doigt.style.opacity = (op * 0.95).toFixed(3);
+    doigt.style.transform = 'translate3d(238px,' + (690 - tire - 30 * leve).toFixed(2) + 'px,0) scale(' + ech.toFixed(4) + ')';
+
+    // --- fondu de bouclage
+    var fondu = 1;
+    if (tReel >= T.fondu && tReel < T.remise) fondu = 1 - seg(tReel, T.fondu, T.remise, easeInOut);
+    else if (tReel >= T.remise && tReel < T.retour) fondu = 0;
+    else if (tReel >= T.retour) fondu = seg(tReel, T.retour, DUREE, easeInOut);
+    pages.style.opacity = fondu.toFixed(3);
+  }
+
+  function rendreA(t) { rendre(t, t); }
+
+  // ---------------------------------------------------------------- lecture
+  var params = new URLSearchParams(location.search);
+  var fige = params.get('t');
+  var reduit = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // État fixe représentatif : la colonne « À venir » et ses dates, sans doigt.
+  var REPRESENTATIF = 7.5;
+
+  var pret = [document.fonts ? document.fonts.ready : Promise.resolve()];
+  Array.prototype.forEach.call(document.images, function (img) {
+    if (!img.complete) pret.push(new Promise(function (ok) { img.onload = img.onerror = ok; }));
+  });
+  var attente = Promise.race([Promise.all(pret), new Promise(function (ok) { setTimeout(ok, 2500); })]);
+
+  if (fige !== null || reduit) {
+    var instant = fige !== null ? (parseFloat(fige) || 0) : REPRESENTATIF;
+    rendreA(instant);
+    if (reduit && fige === null) doigt.style.display = 'none';
+    attente.then(function () { M = null; rendreA(instant); });
+    return;
+  }
+
+  var debut = null;
+  function image(maintenant) {
+    if (debut === null) debut = maintenant;
+    rendreA(((maintenant - debut) / 1000) % DUREE);
+    requestAnimationFrame(image);
+  }
+  rendreA(0);
+  attente.then(function () { M = null; requestAnimationFrame(image); });
+
+  var mq = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (mq && mq.addEventListener) {
+    mq.addEventListener('change', function (e) { if (e.matches) location.reload(); });
+  }
+})();
+</script>
+</body>
+</html>

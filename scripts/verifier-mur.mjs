@@ -72,7 +72,7 @@ try {
     const pageDefile = await p.evaluate(() => document.scrollingElement.scrollHeight > innerHeight)
     verifier(!pageDefile, 'la page elle-même ne défile pas')
     const iframes = await p.$$eval('iframe', fs => fs.length)
-    verifier(iframes > 0 && iframes <= 16, `iframes chargées près de l'écran seulement (${iframes})`)
+    verifier(iframes > 0 && iframes <= 8, `iframes chargées près de l'écran seulement (${iframes})`)
     await p.screenshot({ path: `${SORTIE}/ordinateur.png` })
 
     // Passage sous 768 px : reconstruction propre.

@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Watchtracker · Amis</title>
+<link rel="preconnect" href="https://image.tmdb.org" crossorigin>
+<link rel="preload" href="wt-inter-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="wt-inter-500.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="wt-inter-600.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  /* Inter auto-hébergée (sous-ensemble latin, celui que charge next/font) */
+  @font-face { font-family: Inter; font-style: normal; font-weight: 400; font-display: swap; src: url(wt-inter-400.woff2) format('woff2'); }
+  @font-face { font-family: Inter; font-style: normal; font-weight: 500; font-display: swap; src: url(wt-inter-500.woff2) format('woff2'); }
+  @font-face { font-family: Inter; font-style: normal; font-weight: 600; font-display: swap; src: url(wt-inter-600.woff2) format('woff2'); }
+  @font-face { font-family: Inter; font-style: normal; font-weight: 700; font-display: swap; src: url(wt-inter-700.woff2) format('woff2'); }
+
+  /* Tokens recopiés du @theme de watchtracker/src/app/globals.css */
+  :root {
+    --voile-doux: rgb(218 112 214 / 0.028);
+    --voile: rgb(218 112 214 / 0.042);
+    --voile-fort: rgb(218 112 214 / 0.075);
+    --filet-doux: rgb(232 178 230 / 0.07);
+    --filet: rgb(232 178 230 / 0.11);
+    --filet-fort: rgb(232 178 230 / 0.17);
+    --reflet: inset 0 1px 0 rgb(248 232 247 / 0.09);
+    --blur-halo: 48px;
+    --blur-surface: 40px;
+    --blur-controle: 20px;
+    --neutral-950: #0a0a0a;
+  }
+  /* Le filet (inset-ring) et le reflet (shadow) se composent comme dans
+     Tailwind v4 : deux variables non héritées, une seule box-shadow. */
+  @property --tw-inset-ring-shadow { syntax: "*"; inherits: false; initial-value: 0 0 #0000; }
+  @property --tw-inset-ring-color { syntax: "*"; inherits: false; initial-value: currentcolor; }
+  @property --tw-shadow { syntax: "*"; inherits: false; initial-value: 0 0 #0000; }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; border: 0 solid; }
+  html, body { background: #000; overflow: hidden; color-scheme: dark; }
+  body {
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    line-height: 1.5;
+    color: #fff;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  img { display: block; max-width: 100%; }
+  ul, ol { list-style: none; }
+
+  /* ---- Les utilitaires Tailwind employés par les composants recopiés ---- */
+  .block { display: block; } .inline-block { display: inline-block; } .inline-flex { display: inline-flex; }
+  .flex { display: flex; } .hidden { display: none; }
+  .flex-col { flex-direction: column; } .flex-wrap { flex-wrap: wrap; }
+  .flex-1 { flex: 1 1 0%; } .shrink-0 { flex-shrink: 0; } .min-w-0 { min-width: 0; }
+  .items-center { align-items: center; } .items-start { align-items: flex-start; }
+  .justify-between { justify-content: space-between; } .justify-center { justify-content: center; } .justify-end { justify-content: flex-end; }
+  .self-start { align-self: flex-start; }
+  .gap-1 { gap: 4px; } .gap-1\.5 { gap: 6px; } .gap-2 { gap: 8px; } .gap-3 { gap: 12px; }
+  .relative { position: relative; } .absolute { position: absolute; } .inset-0 { inset: 0; }
+  .overflow-hidden { overflow: hidden; }
+  .p-3 { padding: 12px; } .p-4 { padding: 16px; }
+  .px-1 { padding-left: 4px; padding-right: 4px; } .px-3 { padding-left: 12px; padding-right: 12px; }
+  .px-3\.5 { padding-left: 14px; padding-right: 14px; } .px-4 { padding-left: 16px; padding-right: 16px; }
+  .px-5 { padding-left: 20px; padding-right: 20px; }
+  .py-1\.5 { padding-top: 6px; padding-bottom: 6px; } .py-2 { padding-top: 8px; padding-bottom: 8px; }
+  .py-2\.5 { padding-top: 10px; padding-bottom: 10px; } .py-3 { padding-top: 12px; padding-bottom: 12px; }
+  .pl-2\.5 { padding-left: 10px; } .pr-2 { padding-right: 8px; } .pr-3\.5 { padding-right: 14px; }
+  .pt-4 { padding-top: 16px; } .pb-1 { padding-bottom: 4px; } .pb-32 { padding-bottom: 128px; }
+  .mt-0\.5 { margin-top: 2px; } .mt-1 { margin-top: 4px; } .mt-1\.5 { margin-top: 6px; } .mt-2 { margin-top: 8px; }
+  .mt-3 { margin-top: 12px; } .mt-4 { margin-top: 16px; } .mt-5 { margin-top: 20px; } .mt-6 { margin-top: 24px; }
+  .mt-8 { margin-top: 32px; } .mb-4 { margin-bottom: 16px; } .-mx-4 { margin-left: -16px; margin-right: -16px; }
+  .h-9 { height: 36px; } .w-9 { width: 36px; } .h-11 { height: 44px; } .w-11 { width: 44px; } .w-14 { width: 56px; }
+  .h-24 { height: 96px; } .w-16 { width: 64px; } .w-full { width: 100%; } .h-full { height: 100%; }
+  .min-h-11 { min-height: 44px; } .max-w-40 { max-width: 160px; } .max-w-full { max-width: 100%; }
+  .aspect-video { aspect-ratio: 16 / 9; }
+  .rounded-xl { border-radius: 12px; } .rounded-2xl { border-radius: 16px; } .rounded-3xl { border-radius: 24px; } .rounded-full { border-radius: 9999px; }
+  .object-cover { object-fit: cover; }
+  .text-xs { font-size: 12px; line-height: 16px; } .text-sm { font-size: 14px; line-height: 20px; }
+  .text-lg { font-size: 18px; line-height: 28px; } .text-xl { font-size: 20px; line-height: 28px; }
+  .text-\[13px\] { font-size: 13px; }
+  .leading-relaxed { line-height: 1.625; }
+  .font-medium { font-weight: 500; } .font-semibold { font-weight: 600; } .italic { font-style: italic; }
+  .uppercase { text-transform: uppercase; } .tracking-tight { letter-spacing: -0.025em; } .tracking-wider { letter-spacing: 0.05em; }
+  .tabular-nums { font-variant-numeric: tabular-nums; } .text-center { text-align: center; }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .text-white { color: #fff; } .text-white\/30 { color: rgb(255 255 255 / 0.3); } .text-white\/40 { color: rgb(255 255 255 / 0.4); }
+  .text-white\/50 { color: rgb(255 255 255 / 0.5); } .text-white\/60 { color: rgb(255 255 255 / 0.6); }
+  .text-white\/70 { color: rgb(255 255 255 / 0.7); } .text-white\/80 { color: rgb(255 255 255 / 0.8); }
+  .text-neutral-950 { color: var(--neutral-950); } .text-neutral-950\/50 { color: rgb(10 10 10 / 0.5); }
+  .bg-white { background-color: #fff; } .bg-black\/30 { background-color: rgb(0 0 0 / 0.3); }
+  .bg-voile { background-color: var(--voile); } .bg-voile-fort { background-color: var(--voile-fort); }
+  .odd\:bg-voile-doux:nth-child(odd) { background-color: var(--voile-doux); }
+  .border-t { border-top-width: 1px; } .border-filet { border-color: var(--filet); }
+  .inset-ring-1 { --tw-inset-ring-shadow: inset 0 0 0 1px var(--tw-inset-ring-color); box-shadow: var(--tw-inset-ring-shadow), var(--tw-shadow); }
+  .inset-ring-filet { --tw-inset-ring-color: var(--filet); } .inset-ring-filet-fort { --tw-inset-ring-color: var(--filet-fort); }
+  .inset-ring-white { --tw-inset-ring-color: #fff; }
+  .shadow-reflet { --tw-shadow: var(--reflet); box-shadow: var(--tw-inset-ring-shadow), var(--tw-shadow); }
+  .backdrop-blur-surface { -webkit-backdrop-filter: blur(var(--blur-surface)); backdrop-filter: blur(var(--blur-surface)); }
+  .backdrop-blur-controle { -webkit-backdrop-filter: blur(var(--blur-controle)); backdrop-filter: blur(var(--blur-controle)); }
+  /* absolute inset-0 h-full w-full scale-125 object-cover opacity-30 blur-halo saturate-150 */
+  .halo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.25); opacity: 0.3; filter: blur(var(--blur-halo)) saturate(1.5); pointer-events: none; }
+
+  
+  .pt-7 { padding-top: 28px; } .pb-4 { padding-bottom: 16px; } .mb-6 { margin-bottom: 24px; } .mb-8 { margin-bottom: 32px; }
+  .mt-1\.5 { margin-top: 6px; } .ml-1 { margin-left: 4px; } .w-4 { width: 16px; } .h-11 { height: 44px; }
+  .font-bold { font-weight: 700; } .text-3xl { font-size: 30px; line-height: 36px; } .text-left { text-align: left; }
+  .rounded-2xl { border-radius: 16px; } .bg-voile-fort { background-color: var(--voile-fort); }
+  .text-white\/50 { color: rgb(255 255 255 / 0.5); }
+  .w-20 { width: 80px; }
+  .portrait { width: 80px; height: 80px; border-radius: 9999px; object-fit: cover; }
+  /* line-clamp-2 text-[11px] leading-tight */
+  .nom2 { font-size: 11px; line-height: 1.25; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+  .bouton-envoyer { opacity: 0.4; }
+/* L'écran : un iPhone de 390 × 844 points, mis à l'échelle de l'iframe. */
+  #ecran { position: absolute; top: 0; left: 0; width: 390px; height: 844px; overflow: hidden; background: #000; transform-origin: 0 0; }
+  .page { position: absolute; inset: 0; overflow: hidden; }
+  /* Le body porte pt-[env(safe-area-inset-top)] : 47 px en PWA black-translucent. */
+  .defile { position: relative; padding-top: 47px; will-change: transform; }
+  main { position: relative; }
+
+  /* Barre d'état iOS */
+  .statut { position: absolute; inset: 0 0 auto 0; height: 47px; z-index: 30; pointer-events: none; }
+  .statut .heure { position: absolute; left: 0; width: 132px; top: 15px; text-align: center; font-size: 17px; font-weight: 600; line-height: 22px; letter-spacing: -0.01em; }
+  .statut .icones { position: absolute; right: 0; width: 132px; top: 19px; display: flex; justify-content: center; align-items: center; gap: 6px; }
+  .ilot { position: absolute; top: 11px; left: 50%; width: 124px; height: 36px; margin-left: -62px; border-radius: 999px; background: #000; }
+
+  /* BackLink : puce de verre avec chevron */
+  .retour { display: inline-flex; max-width: 100%; align-items: center; gap: 4px; border-radius: 9999px; background: var(--voile); padding: 8px 14px 8px 10px; font-size: 14px; line-height: 20px; color: rgb(255 255 255 / 0.7); box-shadow: inset 0 0 0 1px var(--filet); -webkit-backdrop-filter: blur(var(--blur-controle)); backdrop-filter: blur(var(--blur-controle)); }
+
+  /* Logo détouré : max-h-14 w-auto max-w-full object-contain object-left */
+  .logo { max-height: 56px; width: auto; height: auto; max-width: 100%; object-fit: contain; object-position: left; }
+
+  /* Le <select> natif de « J'en suis là », tel que Safari iOS le dessine */
+  .choix { position: relative; display: flex; align-items: center; white-space: nowrap; overflow: hidden; padding-right: 34px; }
+  .choix .fleche { position: absolute; right: 16px; top: 50%; margin-top: -5px; }
+
+  /* Pastille de note : le blanc plein se pose par-dessus le verre */
+  .pastille { position: relative; overflow: hidden; }
+  .pastille .plein { position: absolute; inset: 0; border-radius: inherit; background: #fff; opacity: 0; }
+  .pastille b { position: relative; font-weight: inherit; }
+  .rangee { display: flex; gap: 6px; overflow: hidden; padding-bottom: 4px; }
+
+  /* Le champ de texte, au repos */
+  .champ { height: 88px; }
+
+  /* BottomNav */
+  .onglets { position: absolute; left: 0; right: 0; bottom: 0; z-index: 20; padding: 0 16px 34px; }
+  .onglets .capsule { display: flex; align-items: stretch; justify-content: space-around; overflow: hidden; border-radius: 999px; background: var(--voile-fort); box-shadow: inset 0 0 0 1px var(--filet), inset 0 1px 0 rgb(248 232 247 / 0.09), 0 12px 40px rgb(0 0 0 / 0.55); -webkit-backdrop-filter: blur(var(--blur-surface)); backdrop-filter: blur(var(--blur-surface)); }
+  .onglet { display: flex; min-width: 0; flex: 1; flex-direction: column; align-items: center; gap: 2px; padding: 8px 0; font-size: 10px; line-height: 15px; font-weight: 500; color: rgb(255 255 255 / 0.4); }
+
+  /* Le bandeau d'annulation (annulation.tsx) */
+  .annulation { position: absolute; left: 0; right: 0; bottom: calc(88px + 34px); z-index: 40; display: flex; justify-content: center; padding: 0 16px; opacity: 0; pointer-events: none; }
+  .annulation .pilule { display: flex; align-items: center; gap: 8px; border-radius: 999px; padding: 8px 8px 8px 20px; background: var(--voile-fort); box-shadow: inset 0 0 0 1px var(--filet-fort), var(--reflet); -webkit-backdrop-filter: blur(var(--blur-surface)); backdrop-filter: blur(var(--blur-surface)); }
+  .annulation .libelle { font-size: 14px; line-height: 20px; color: rgb(255 255 255 / 0.8); white-space: nowrap; }
+  .annulation .annuler { flex-shrink: 0; border-radius: 999px; padding: 8px 16px; font-size: 14px; line-height: 20px; background: #fff; font-weight: 600; color: var(--neutral-950); }
+  .annulation .fermer { display: flex; width: 36px; height: 36px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 999px; color: rgb(255 255 255 / 0.5); }
+
+  .barre-accueil { position: absolute; left: 50%; bottom: 8px; width: 134px; height: 5px; margin-left: -67px; border-radius: 999px; background: #fff; z-index: 50; }
+
+  /* Le doigt fictif */
+  .doigt { position: absolute; left: 0; top: 0; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 999px; background: rgb(255 255 255 / 0.26); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.4), 0 6px 18px rgb(0 0 0 / 0.35); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); opacity: 0; z-index: 60; pointer-events: none; will-change: transform, opacity; }
+
+  .onglet.actif { color: #fff; }
+  .onglet { transition: color 150ms; }
+</style>
+</head>
+<body>
+<div id="ecran" aria-hidden="true">
+  <div class="statut">
+    <div class="heure">9:41</div>
+    <div class="ilot"></div>
+    <div class="icones">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="#fff"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="#fff"><path d="M8 2.4c2.3 0 4.4.9 6 2.4l1.1-1.2C13.2 1.8 10.7.7 8 .7S2.8 1.8.9 3.6L2 4.8c1.6-1.5 3.7-2.4 6-2.4Z"/><path d="M8 5.8c1.4 0 2.6.5 3.6 1.4l1.1-1.2C11.5 4.8 9.8 4.1 8 4.1s-3.5.7-4.7 1.9l1.1 1.2c1-.9 2.2-1.4 3.6-1.4Z"/><path d="M8 9.2c.5 0 1 .2 1.3.5L8 11.2 6.7 9.7c.3-.3.8-.5 1.3-.5Z"/></svg>
+      <svg width="27" height="13" viewBox="0 0 27 13" fill="none"><rect x="0.5" y="0.5" width="23" height="12" rx="3.8" stroke="#fff" stroke-opacity="0.35"/><rect x="2" y="2" width="20" height="9" rx="2.5" fill="#fff"/><path d="M25 4.5v4c.8-.3 1.3-1.1 1.3-2s-.5-1.7-1.3-2Z" fill="#fff" fill-opacity="0.4"/></svg>
+    </div>
+  </div>
+
+  <div id="pages">
+    <!-- 1. src/app/amis/page.tsx -->
+    <div class="page" id="pageAmis"><div class="defile" id="defileAmis">
+      <main class="px-4 pb-4 pt-7" id="amis"></main>
+    </div></div>
+    <!-- 2. src/app/film/[tmdbId]/page.tsx -->
+    <div class="page" id="pageFilm" style="opacity:0;visibility:hidden"><div class="defile" id="defileFilm">
+      <main class="p-4" id="film"></main>
+    </div></div>
+  </div>
+
+  <nav class="onglets">
+    <div class="capsule">
+      <span class="onglet"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="2"/><path d="M6 6h12M8 3h8"/></svg>Pile</span>
+      <span class="onglet"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>Découvrir</span>
+      <span class="onglet actif" id="ongletAmis"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3"/><path d="M3.5 19.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><circle cx="16.5" cy="9.5" r="2.4"/><path d="M16.5 14.7c2.4.3 4 2 4 4.3"/></svg>Amis</span>
+      <span class="onglet"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 19.5c0-3.6 3-6 7-6s7 2.4 7 6"/></svg>Profil</span>
+    </div>
+  </nav>
+
+  <div class="doigt" id="doigt"></div>
+  <div class="barre-accueil"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var IMG = 'https://image.tmdb.org/t/p/';
+  // Le jour du scénario : lundi 12 octobre 2026. Prénoms des amis : fictifs.
+  var AMIS = ['Inès', 'Léa', 'Malik'];
+  var RECO = { titre: 'The Pitt', affiche: '/hG6hU3thTBeKI8YL5Rgnd9aXnTM.jpg', de: 'Malik', mot: 'Quinze heures d’urgences, tu ne lâches plus.' };
+  var CLASSEMENT = [['1', 'Léa', '31 h 20'], ['2', null, '24 h 05'], ['3', 'Malik', '18 h 40'], ['4', 'Inès', '9 h 15']];
+  // formatFeedLine (src/lib/social/labels.ts) + relativeDay
+  var FLUX = [
+    { qui: 'Inès', quoi: 'a vu Une Bataille après l\'autre', quand: 'aujourd’hui', reactions: {} },
+    { qui: 'Léa', quoi: 'a vu Slow Horses S6E1–E4 · 4 épisodes', quand: 'hier', reactions: { '👍': 1 } },
+    { qui: 'Malik', quoi: 'a vu Les Carnets de l’apothicaire S1E50', quand: '10 oct.', reactions: { '😂': 1 } },
+    { qui: 'Léa', quoi: 'a terminé The Bear', quand: '9 oct.', reactions: { '🔥': 2 } },
+    { qui: 'Inès', quoi: 'a vu Pluribus S1E7–E9 · 3 épisodes', quand: '8 oct.', reactions: {} },
+    { qui: 'Malik', quoi: 'a vu Silo S3E10', quand: '6 oct.', reactions: { '😱': 1 } }
+  ];
+  var EMOJIS = ['👍', '🔥', '😱', '😂'];
+  // Une Bataille après l'autre (TMDB 1054867), fr-FR
+  var FILM = {
+    affiche: '/vfoxYHHpSOadhOFCmNbtLG2WcUy.jpg',
+    logo: '/1maJ5kTNnPfAJ79Y9CFk27Lw0Qh.png',
+    meta: '2025 · Film · Sorti · Warner Bros. Pictures · anglais',
+    note: '7,3', votes: 4377,
+    accroche: 'Certains combats méritent bataille.',
+    sortie: 'Sorti le 23 septembre 2025 · 2 h 41',
+    resume: 'Bob Ferguson est un ancien révolutionnaire paranoïaque et désabusé, qui a jadis œuvré avec son ex, Perfidia, au sein du French 75, un groupe militant voué au renversement du gouvernement américain. Seize ans plus tard, Bob vit seul avec sa fille, Willa, quand celle-ci disparaît soudainement. Bob soupçonne son vieil ennemi d’antan, le Colonel Steven J. Lockjaw, d’être responsable de sa disparition. Il décide alors de renouer avec ses anciens frères d’armes pour retrouver sa fille, quitte à confronter les fantômes de son passé.',
+    plateforme: ['Canal+', '/gliWKhLJVdm7QwL1braBCRko5dx.png'],
+    distribution: [
+      ['Leonardo DiCaprio', 'Bob', '/wo2hJpn04vbtmh0B9utCFdsQhxM.jpg'],
+      ['Sean Penn', 'Col. Steven J. Lockjaw', '/9glqNTVpFpdN1nFklKaHPUyCwR6.jpg'],
+      ['Chase Infiniti', 'Willa', '/2goENGgg9OCz7qjMmm0HNxV9Kjj.jpg'],
+      ['Benicio del Toro', 'Sensei Sergio St. Carlos', '/aYomJWx0B2B8ra6Rmgt8lr0XCrw.jpg'],
+      ['Regina Hall', 'Deandra', '/jiFZ4xNrvUUZLBHnJu71CvdN4kj.jpg']
+    ],
+    motsCles: ['rebellion', 'based on novel or book', 'resistance', 'usa–mexico border', 'riot', 'interracial relationship', 'on the run', 'xenophobia', 'aftercreditsstinger', 'missing daughter']
+  };
+  var DESTINATAIRE = 2; // Malik
+
+  var CHECK = function (taille) {
+    return '<svg width="' + taille + '" height="' + taille + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 12.5 4 4 8.5-8.5"/></svg>';
+  };
+  var CHEVRON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m14 6-6 6 6 6"/></svg>';
+  var H2 = 'text-[13px] font-semibold uppercase tracking-wider text-white/40';
+
+  // ---------------------------------------------------------------- Amis
+  document.getElementById('amis').innerHTML =
+    '<header class="mb-6 flex items-center justify-between"><h1 class="text-3xl font-bold tracking-tight">Amis</h1>' +
+      '<span class="rounded-full bg-white px-5 py-3 text-sm font-semibold text-neutral-950">Inviter des amis</span></header>' +
+    '<section class="mb-8"><h2 class="' + H2 + '">On te conseille</h2><ul class="mt-2 flex flex-col gap-3">' +
+      '<li class="relative overflow-hidden rounded-3xl bg-voile inset-ring-1 inset-ring-filet backdrop-blur-surface shadow-reflet">' +
+        '<img class="halo" alt="" src="' + IMG + 'w154' + RECO.affiche + '">' +
+        '<div class="relative flex w-full items-center gap-3 p-3 text-left">' +
+          '<img src="' + IMG + 'w342' + RECO.affiche + '" alt="" class="h-24 w-16 shrink-0 rounded-xl object-cover">' +
+          '<span class="min-w-0 flex-1"><span class="block truncate font-semibold tracking-tight">' + RECO.titre + '</span>' +
+            '<span class="mt-0.5 block truncate text-sm text-white/60">— de ' + RECO.de + '</span>' +
+            '<span class="mt-1.5 block text-sm text-white/80">«&nbsp;' + RECO.mot + '&nbsp;»</span></span>' +
+        '</div></li></ul></section>' +
+    '<section><h2 class="' + H2 + '">Mes amis</h2><ul class="mt-2 flex flex-col gap-1">' +
+      AMIS.map(function (a) {
+        return '<li class="flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-sm odd:bg-voile-doux">' +
+          '<span class="min-w-0 flex-1"><span class="block truncate font-medium">' + a + '</span></span>' +
+          '<span class="shrink-0 text-xs font-medium text-white/40">Retirer</span></li>';
+      }).join('') + '</ul></section>' +
+    '<section class="mt-8"><h2 class="' + H2 + '">Ces 30 jours</h2><ol class="mt-2 flex flex-col gap-1">' +
+      CLASSEMENT.map(function (l) {
+        var moi = l[1] === null;
+        return '<li class="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm ' + (moi ? 'bg-voile-fort inset-ring-1 inset-ring-filet-fort backdrop-blur-controle shadow-reflet' : 'odd:bg-voile-doux') + '">' +
+          '<span class="w-4 shrink-0 tabular-nums text-white/40">' + l[0] + '</span>' +
+          (moi ? '<span class="min-w-0 flex-1 truncate font-semibold">Toi</span>' : '<span class="min-w-0 flex-1 truncate font-medium">' + l[1] + '</span>') +
+          '<span class="shrink-0 tabular-nums ' + (moi ? 'font-semibold' : 'text-white/60') + '">' + l[2] + '</span></li>';
+      }).join('') + '</ol></section>' +
+    '<section class="mt-8" id="flux"><h2 class="' + H2 + '">Ces derniers jours</h2><ul class="mt-2 flex flex-col gap-3">' +
+      FLUX.map(function (f, i) {
+        return '<li class="rounded-3xl bg-voile p-3 inset-ring-1 inset-ring-filet backdrop-blur-surface shadow-reflet">' +
+          '<p class="text-sm"><span class="font-medium">' + f.qui + '</span> <span class="text-white/70" id="lien' + i + '">' + f.quoi + '</span></p>' +
+          '<p class="mt-0.5 text-xs text-white/40">' + f.quand + '</p>' +
+          '<div class="mt-2 flex gap-2">' + EMOJIS.map(function (e) {
+            var n = f.reactions[e] || 0;
+            return '<span class="reaction rounded-full px-3 py-1.5 text-sm bg-voile-fort text-white/70" data-flux="' + i + '" data-emoji="' + e + '">' + e +
+              '<span class="ml-1 text-xs tabular-nums compte">' + (n > 0 ? n : '') + '</span></span>';
+          }).join('') + '</div></li>';
+      }).join('') + '</ul></section>';
+
+  // ---------------------------------------------------------------- le film
+  var PILULE = 'flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full px-4 text-sm inset-ring-1 ';
+  document.getElementById('film').innerHTML =
+    '<a class="retour">' + CHEVRON + '<span class="truncate">Retour</span></a>' +
+    '<div class="mt-4"><div class="flex items-start gap-3">' +
+      '<img src="' + IMG + 'w342' + FILM.affiche + '" alt="" class="h-24 w-16 shrink-0 rounded-xl object-cover">' +
+      '<div class="min-w-0 flex-1">' +
+        '<img class="logo" src="' + IMG + 'w300' + FILM.logo + '" alt="">' +
+        '<p class="mt-1.5 text-sm text-white/40">' + FILM.meta + '</p>' +
+        '<p class="mt-1 text-sm text-white/60"><span class="font-semibold tabular-nums text-white">' + FILM.note + '</span><span class="text-white/40"> /10 · ' + FILM.votes + ' votes</span></p>' +
+      '</div></div>' +
+      '<p class="mt-3 text-sm italic text-white/60">« ' + FILM.accroche + ' »</p></div>' +
+    '<p class="mt-3 text-sm text-white/40">' + FILM.sortie + '</p>' +
+    '<p class="mt-1 text-sm text-white/40">Réalisé par <span class="text-white/70">Paul Thomas Anderson</span></p>' +
+    '<p class="mt-3 text-sm leading-relaxed text-white/70">' + FILM.resume + '</p>' +
+    '<div class="mt-4"><div class="relative block aspect-video w-full overflow-hidden rounded-3xl inset-ring-1 inset-ring-filet shadow-reflet">' +
+      '<img src="wt-amis/bande-annonce.jpg" alt="" class="absolute inset-0 h-full w-full object-cover">' +
+      '<span class="absolute inset-0 bg-black/30"></span>' +
+      '<span class="absolute inset-0 flex items-center justify-center"><span class="flex items-center gap-2 rounded-full bg-voile-fort px-5 py-3 text-sm font-medium text-white inset-ring-1 inset-ring-filet-fort backdrop-blur-controle shadow-reflet">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>Bande-annonce</span></span>' +
+    '</div></div>' +
+    '<section class="relative mt-4 overflow-hidden rounded-3xl bg-voile p-4 inset-ring-1 inset-ring-filet backdrop-blur-surface shadow-reflet">' +
+      '<h2 class="' + H2 + '">Où le regarder</h2>' +
+      '<ul class="mt-3 flex flex-wrap gap-2"><li class="flex items-center gap-2"><img src="' + IMG + 'w92' + FILM.plateforme[1] + '" alt="" class="h-9 w-9 shrink-0 rounded-2xl object-cover"><span class="text-sm text-white/80">' + FILM.plateforme[0] + '</span></li></ul>' +
+      '<p class="mt-3 text-xs text-white/40">Aussi en location ou à l’achat.</p>' +
+      '<a class="mt-3 inline-block text-sm text-white/60">Toutes les offres</a></section>' +
+    // ActionsFilm : dans la watchlist, pas encore vu
+    '<div class="mt-4 flex gap-2">' +
+      '<span class="' + PILULE + 'bg-voile text-white/70 inset-ring-filet backdrop-blur-controle shadow-reflet">Vu</span>' +
+      '<span class="' + PILULE + 'bg-white font-semibold text-neutral-950 inset-ring-white">' + CHECK(16) + 'À voir</span></div>' +
+    '<div class="mt-4"><div class="flex flex-col gap-2"><span class="flex h-11 shrink-0 self-start items-center rounded-full bg-voile-fort px-4 text-sm font-medium text-white inset-ring-1 inset-ring-filet-fort backdrop-blur-controle shadow-reflet">Ajouter à une liste</span></div></div>' +
+    // RecommanderBouton
+    '<div class="mt-3"><div class="flex flex-col gap-2">' +
+      '<span class="flex h-11 shrink-0 items-center justify-center rounded-full bg-voile-fort px-4 text-sm font-medium text-white inset-ring-1 inset-ring-filet-fort backdrop-blur-controle shadow-reflet" id="conseiller">Conseiller à un ami</span>' +
+      '<div class="rounded-3xl bg-voile p-3 inset-ring-1 inset-ring-filet backdrop-blur-surface shadow-reflet" id="panneau" style="display:none">' +
+        '<p class="px-1 ' + H2 + '">À qui ?</p>' +
+        '<div class="mt-2 flex flex-wrap gap-2">' + AMIS.map(function (a, i) {
+          return '<span class="ami relative flex h-11 max-w-full items-center overflow-hidden truncate rounded-full px-4 text-sm bg-voile-fort text-white/70 inset-ring-1 inset-ring-filet" data-i="' + i + '"><span class="plein absolute inset-0 rounded-full bg-white" style="opacity:0"></span><span class="relative nom">' + a + '</span></span>';
+        }).join('') + '</div>' +
+        '<div class="mt-3 flex h-11 w-full items-center rounded-full bg-voile-fort px-4 text-sm text-white/40 inset-ring-1 inset-ring-filet">Un mot ? (facultatif)</div>' +
+        '<span class="bouton-envoyer mt-3 flex h-11 w-full items-center justify-center rounded-full bg-white text-sm font-semibold text-neutral-950" id="envoyer">Envoyer</span>' +
+      '</div>' +
+    '</div></div>' +
+    '<ul class="mt-4 flex flex-wrap gap-2">' + FILM.motsCles.map(function (m) {
+      return '<li class="rounded-full bg-voile px-3 py-1.5 text-xs text-white/60 inset-ring-1 inset-ring-filet">' + m + '</li>';
+    }).join('') + '</ul>' +
+    // Distribution : une rangée de portraits qui défile
+    '<section class="mt-8"><h2 class="' + H2 + '">Distribution</h2><ul class="-mx-4 mt-3 flex gap-3 overflow-hidden px-4 pb-1">' +
+      FILM.distribution.map(function (p) {
+        return '<li class="w-20 shrink-0"><img src="' + IMG + 'w185' + p[2] + '" alt="" class="portrait">' +
+          '<p class="nom2 mt-1.5 font-medium">' + p[0] + '</p><p class="nom2 mt-0.5 text-white/40">' + p[1] + '</p></li>';
+      }).join('') + '</ul></section>';
+
+  // ---------------------------------------------------------------- références
+  var ecran = document.getElementById('ecran');
+  var doigt = document.getElementById('doigt');
+  var pages = document.getElementById('pages');
+  var pageAmis = document.getElementById('pageAmis');
+  var pageFilm = document.getElementById('pageFilm');
+  var defileAmis = document.getElementById('defileAmis');
+  var defileFilm = document.getElementById('defileFilm');
+  var ongletAmis = document.getElementById('ongletAmis');
+  var conseiller = document.getElementById('conseiller');
+  var panneau = document.getElementById('panneau');
+  var envoyer = document.getElementById('envoyer');
+  var feu = document.querySelector('.reaction[data-flux="1"][data-emoji="🔥"]');
+  var feuCompte = feu.querySelector('.compte');
+  var lienFilm = document.getElementById('lien0');
+  var ami = document.querySelectorAll('#panneau .ami')[DESTINATAIRE];
+  var amiPlein = ami.querySelector('.plein');
+  var amiNom = ami.querySelector('.nom');
+
+  var echelle = 1;
+  function ajuster() {
+    echelle = window.innerWidth / 390;
+    ecran.style.transform = 'scale(' + echelle + ')';
+    document.body.style.height = (844 * echelle) + 'px';
+  }
+  ajuster();
+  window.addEventListener('resize', ajuster);
+
+  function bezier(x1, y1, x2, y2) {
+    function a(p1, p2) { return 1 - 3 * p2 + 3 * p1; }
+    function b(p1, p2) { return 3 * p2 - 6 * p1; }
+    function c(p1) { return 3 * p1; }
+    function calc(t, p1, p2) { return ((a(p1, p2) * t + b(p1, p2)) * t + c(p1)) * t; }
+    function pente(t, p1, p2) { return 3 * a(p1, p2) * t * t + 2 * b(p1, p2) * t + c(p1); }
+    return function (x) {
+      if (x <= 0) return 0;
+      if (x >= 1) return 1;
+      var t = x;
+      for (var i = 0; i < 8; i++) {
+        var d = pente(t, x1, x2);
+        if (Math.abs(d) < 1e-6) break;
+        t -= (calc(t, x1, x2) - x) / d;
+      }
+      t = Math.min(1, Math.max(0, t));
+      return calc(t, y1, y2);
+    };
+  }
+  var easeOut = bezier(0, 0, 0.2, 1);       // Tailwind ease-out
+  var easeInOut = bezier(0.4, 0, 0.2, 1);   // Tailwind ease-in-out
+  function seg(t, a, b, f) {
+    if (t <= a) return 0;
+    if (t >= b) return 1;
+    return (f || easeOut)((t - a) / (b - a));
+  }
+  function lerp(a, b, p) { return a + (b - a) * p; }
+
+  // Un défilement au doigt : le contenu suit le doigt (accélération), puis
+  // file sur sa lancée et ralentit comme un UIScrollView (décroissance
+  // exponentielle, vitesse continue au lâcher).
+  function defilement(t, g) {
+    var duree = g.t1 - g.t0;
+    if (t <= g.t0) return 0;
+    if (t < g.t1) {
+      var p = (t - g.t0) / duree;
+      return g.drag * (1.5 * p * p - 0.5 * p * p * p);
+    }
+    if (g.coast <= 0) return g.drag;
+    var vitesse = 1.5 * g.drag / duree;
+    var tau = g.coast / vitesse;
+    var x = Math.min(4, (t - g.t1) / tau);
+    return g.drag + g.coast * (1 - Math.exp(-x)) / (1 - Math.exp(-4));
+  }
+
+  // ---------------------------------------------------------------- mesures
+  function haut(el, conteneur) {
+    var y = 0;
+    while (el && el !== conteneur) { y += el.offsetTop; el = el.offsetParent; }
+    return y;
+  }
+  function gauche(el, conteneur) {
+    var x = 0;
+    while (el && el !== conteneur) { x += el.offsetLeft; el = el.offsetParent; }
+    return x;
+  }
+  function centre(el, conteneur) {
+    return { x: gauche(el, conteneur) + el.offsetWidth / 2, y: haut(el, conteneur) + el.offsetHeight / 2 };
+  }
+
+
+  // ---------------------------------------------------------------- scénario
+  var DUREE = 12.4;
+  var T = {
+    g1: { apparait: 0.95, t0: 1.20, t1: 1.70 },
+    reaction: { apparait: 2.75, appui: 3.00, lache: 3.10 }, majReaction: 3.45,
+    lien: { apparait: 3.85, appui: 4.10, lache: 4.20 }, navigue: 4.42,
+    g2: { apparait: 5.30, t0: 5.52, t1: 6.02 },
+    conseiller: { apparait: 7.00, appui: 7.25, lache: 7.35 },
+    ami: { apparait: 7.75, appui: 8.00, lache: 8.10 },
+    envoyer: { apparait: 8.50, appui: 8.75, lache: 8.85 }, envoye: 9.30, finEnvoye: 11.30,
+    fondu: 11.0, remise: 11.6, retour: 11.75
+  };
+  var M = null;
+  function mesurer() {
+    var S1 = Math.min(haut(document.getElementById('flux'), defileAmis) - 70, defileAmis.offsetHeight + 112 - 844);
+    var S2 = haut(conseiller, defileFilm) - 330;
+    M = {
+      g1: { t0: T.g1.t0, t1: T.g1.t1, drag: S1 * 0.55, coast: S1 * 0.45 },
+      g2: { t0: T.g2.t0, t1: T.g2.t1, drag: S2 / 2.36, coast: S2 - S2 / 2.36 }
+    };
+  }
+
+  function toucher(t, k) {
+    var entre = seg(t, k.apparait, k.apparait + 0.25);
+    var sort = seg(t, k.lache, k.lache + 0.35);
+    return {
+      op: entre * (1 - sort),
+      echelle: lerp(1.25, 1, entre) * lerp(1, 0.86, seg(t, k.appui, k.appui + 0.1)) * lerp(1, 1 / 0.86, sort),
+      dx: 10 * (1 - entre), dy: 14 * (1 - entre)
+    };
+  }
+  function presse(t, k, ampleur) {
+    return 1 - ampleur * seg(t, k.appui, k.appui + 0.1) * (1 - seg(t, k.lache, k.lache + 0.25));
+  }
+  function poser(el, prop, valeur) {
+    if (el['_' + prop] !== valeur) { el.style[prop] = valeur; el['_' + prop] = valeur; }
+  }
+
+  function rendre(t, tReel) {
+    if (!M) mesurer();
+    if (t >= T.remise) t = 0;
+
+    // --- navigation : le lien du flux ouvre la fiche du film
+    var vers = seg(t, T.navigue, T.navigue + 0.16, easeInOut);
+    poser(pageAmis, 'opacity', (1 - vers).toFixed(3));
+    poser(pageAmis, 'visibility', vers >= 1 ? 'hidden' : 'visible');
+    poser(pageFilm, 'opacity', vers.toFixed(3));
+    poser(pageFilm, 'visibility', vers <= 0 ? 'hidden' : 'visible');
+    var surAmis = t < T.navigue;
+    if (ongletAmis.classList.contains('actif') !== surAmis) ongletAmis.classList.toggle('actif', surAmis);
+
+    var sA = Math.min(defilement(t, M.g1), defileAmis.offsetHeight + 112 - 844);
+    // le panneau refermé, la page raccourcit : le navigateur ramène le défilement dans ses bornes
+    poser(panneau, 'display', (t >= T.conseiller.lache && t < T.envoye) ? 'block' : 'none');
+    var sF = Math.min(defilement(t, M.g2), defileFilm.offsetHeight + 112 - 844);
+    poser(defileAmis, 'transform', 'translate3d(0,' + (-sA).toFixed(2) + 'px,0)');
+    poser(defileFilm, 'transform', 'translate3d(0,' + (-sF).toFixed(2) + 'px,0)');
+
+    // --- la réaction 🔥 : action serveur, la pastille blanchit au retour
+    var reagi = t >= T.majReaction;
+    feu.className = 'reaction rounded-full px-3 py-1.5 text-sm ' + (reagi ? 'bg-white text-neutral-950' : 'bg-voile-fort text-white/70');
+    var n = reagi ? '1' : '';
+    if (feuCompte.textContent !== n) feuCompte.textContent = n;
+    poser(feu, 'transform', 'scale(' + presse(t, T.reaction, 0.04).toFixed(4) + ')');
+    poser(lienFilm, 'color', (t >= T.lien.appui && t < T.navigue) ? 'rgb(255 255 255)' : '');
+
+    // --- le panneau « Conseiller à un ami »
+    var libelle = t >= T.envoye && t < T.finEnvoye ? 'Envoyé !' : 'Conseiller à un ami';
+    if (conseiller.textContent !== libelle) conseiller.textContent = libelle;
+    poser(conseiller, 'transform', 'scale(' + presse(t, T.conseiller, 0.04).toFixed(4) + ')');
+    // le destinataire : transition-all 300 ms vers le blanc plein
+    var choisi = seg(t, T.ami.lache, T.ami.lache + 0.3);
+    amiPlein.style.opacity = choisi.toFixed(3);
+    var v = Math.round(lerp(255, 10, choisi));
+    amiNom.style.color = 'rgb(' + v + ',' + v + ',' + v + ',' + lerp(0.7, 1, choisi).toFixed(3) + ')';
+    amiNom.style.fontWeight = choisi > 0.5 ? '600' : '';
+    poser(ami, 'transform', 'scale(' + presse(t, T.ami, 0.04).toFixed(4) + ')');
+    // « Envoyer » : disabled:opacity-40 tant que personne n'est choisi, « … » le temps de l'action
+    envoyer.style.opacity = lerp(0.4, 1, choisi).toFixed(3);
+    var mot = t >= T.envoyer.lache && t < T.envoye ? '…' : 'Envoyer';
+    if (envoyer.textContent !== mot) envoyer.textContent = mot;
+    poser(envoyer, 'transform', 'scale(' + presse(t, T.envoyer, 0.04).toFixed(4) + ')');
+
+    // --- le doigt
+    var d = { op: 0, echelle: 1, x: 0, y: 0 };
+    function surCible(k, el, conteneur, defile, decaleX) {
+      var c = centre(el, conteneur);
+      var f = toucher(t, k);
+      d.op = f.op; d.echelle = f.echelle;
+      d.x = c.x + (decaleX || 0) + f.dx;
+      d.y = c.y - defile + f.dy;
+    }
+    function glisse(g, m, x, y0) {
+      var entre = seg(t, g.apparait, g.apparait + 0.25);
+      var leve = seg(t, g.t1, g.t1 + 0.3);
+      var tire = defilement(Math.min(t, g.t1), m);
+      d.op = entre * (1 - leve);
+      d.echelle = lerp(1.25, 1, entre) * lerp(1, 0.86, seg(t, g.t0, g.t0 + 0.1)) * lerp(1, 1 / 0.86, leve);
+      d.x = x;
+      d.y = y0 - tire - 26 * leve;
+    }
+    if (t < T.g1.t1 + 0.4) glisse(T.g1, M.g1, 250, 680);
+    else if (t < T.lien.apparait - 0.05) surCible(T.reaction, feu, defileAmis, sA);
+    else if (t < T.g2.apparait - 0.05) surCible(T.lien, lienFilm, defileAmis, sA, -40);
+    else if (t < T.g2.t1 + 0.4) glisse(T.g2, M.g2, 240, 690);
+    else if (t < T.ami.apparait - 0.05) surCible(T.conseiller, conseiller, defileFilm, sF, 40);
+    else if (t < T.envoyer.apparait - 0.05) surCible(T.ami, ami, defileFilm, sF);
+    else surCible(T.envoyer, envoyer, defileFilm, sF, 30);
+    doigt.style.opacity = (d.op * 0.95).toFixed(3);
+    doigt.style.transform = 'translate3d(' + d.x.toFixed(2) + 'px,' + d.y.toFixed(2) + 'px,0) scale(' + d.echelle.toFixed(4) + ')';
+
+    // --- fondu de bouclage
+    var fondu = 1;
+    if (tReel >= T.fondu && tReel < T.remise) fondu = 1 - seg(tReel, T.fondu, T.remise, easeInOut);
+    else if (tReel >= T.remise && tReel < T.retour) fondu = 0;
+    else if (tReel >= T.retour) fondu = seg(tReel, T.retour, DUREE, easeInOut);
+    pages.style.opacity = fondu.toFixed(3);
+  }
+
+  function rendreA(t) { rendre(t, t); }
+
+  // ---------------------------------------------------------------- lecture
+  var params = new URLSearchParams(location.search);
+  var fige = params.get('t');
+  var reduit = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // État fixe représentatif : le flux des amis, la réaction posée, sans doigt.
+  var REPRESENTATIF = 3.6;
+
+  var pret = [document.fonts ? document.fonts.ready : Promise.resolve()];
+  Array.prototype.forEach.call(document.images, function (img) {
+    if (!img.complete) pret.push(new Promise(function (ok) { img.onload = img.onerror = ok; }));
+  });
+  var attente = Promise.race([Promise.all(pret), new Promise(function (ok) { setTimeout(ok, 2500); })]);
+
+  if (fige !== null || reduit) {
+    var instant = fige !== null ? (parseFloat(fige) || 0) : REPRESENTATIF;
+    rendreA(instant);
+    if (reduit && fige === null) doigt.style.display = 'none';
+    attente.then(function () { M = null; rendreA(instant); });
+    return;
+  }
+
+  var debut = null;
+  function image(maintenant) {
+    if (debut === null) debut = maintenant;
+    rendreA(((maintenant - debut) / 1000) % DUREE);
+    requestAnimationFrame(image);
+  }
+  rendreA(0);
+  attente.then(function () { M = null; requestAnimationFrame(image); });
+
+  var mq = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (mq && mq.addEventListener) {
+    mq.addEventListener('change', function (e) { if (e.matches) location.reload(); });
+  }
+})();
+</script>
+</body>
+</html>

@@ -2,9 +2,12 @@
 // le fil principal de la page : on n'en garde que pour les tuiles proches de
 // l'écran, et on les démarre une par une pour ne jamais figer le mur.
 
-const MARGE = '25% 0px'
+const MARGE = '10% 0px'
 /** Délai entre deux démarrages de tuile. */
 const ECART_MS = 220
+/** Au-delà, une tuile visible garde son affiche fixe jusqu'à ce qu'une place se libère. */
+const MAX_VIVANTES = () => (matchMedia('(min-width: 768px)').matches ? 8 : 4)
+const vivantes = () => document.querySelectorAll('.tuile iframe').length
 
 const enAttente = new Set<HTMLElement>()
 let minuterie = 0
@@ -12,7 +15,7 @@ let minuterie = 0
 function suivante() {
   minuterie = 0
   const tuile = enAttente.values().next().value
-  if (!tuile) return
+  if (!tuile || vivantes() >= MAX_VIVANTES()) return
   enAttente.delete(tuile)
   monter(tuile)
   planifier()
@@ -38,6 +41,7 @@ export function observer(colonne: HTMLElement): () => void {
           enAttente.add(tuile)
         } else {
           enAttente.delete(tuile)
+          // Une place se libère : la suivante en attente pourra démarrer.
           tuile.querySelector('iframe')?.remove()
         }
       }

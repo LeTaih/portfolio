@@ -22,7 +22,7 @@ try {
     // Certaines tuiles rejouent leur script jusqu'à t et le signalent (data-pret, data-fige).
     // Sondé depuis Node : une tuile à horloge virtuelle détourne son propre rAF.
     for (let i = 0; i < 40; i++) {
-      const pret = await p.evaluate(() => { const d = document.documentElement.dataset; return d.pret === '1' || d.fige === '1' })
+      const pret = await p.evaluate(() => { const d = document.documentElement.dataset; return d.pret !== undefined || d.fige !== undefined })
       if (pret) break
       await pause(100)
     }

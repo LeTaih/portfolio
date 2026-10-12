@@ -4,3 +4,5 @@ dist/
 .vercel/
 .DS_Store
 /tmp/
+lab/
+public/lab/
