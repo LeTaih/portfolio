@@ -30,7 +30,9 @@ async function page(options) {
   await pause(3500) // les tuiles démarrent une par une
   return { p, erreurs, contexte }
 }
-const positions = p => p.$$eval('.colonne', cs => cs.map(c => c.scrollTop))
+// Position visuelle : le défilement natif de la colonne plus le décalage animé de sa piste.
+const positions = p => p.$$eval('.colonne', cs => cs.map(c =>
+  c.scrollTop - new DOMMatrix(getComputedStyle(c.firstElementChild).transform).m42))
 
 try {
   // Chaque tuile du manifeste existe vraiment (le repli SPA de Vite renverrait la page).
@@ -51,7 +53,7 @@ try {
     verifier(a.every((v, i) => Math.abs(b[i] - v) > 5), `chaque colonne avance seule (${a.map(Math.round)} → ${b.map(Math.round)})`)
 
     // Molette sur la 2e colonne : seule elle saute (écarts mesurés modulo la boucle).
-    const periodes = await p.$$eval('.colonne', cs => cs.map(c => c.firstElementChild.offsetHeight))
+    const periodes = await p.$$eval('.colonne', cs => cs.map(c => c.firstElementChild.firstElementChild.offsetHeight))
     const ecart = (v, w, i) => { const d = Math.abs(v - w) % periodes[i]; return Math.min(d, periodes[i] - d) }
     const boite = await p.$eval('.colonne:nth-child(2)', c => { const r = c.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })
     await p.mouse.move(boite.x, boite.y)

@@ -1,4 +1,4 @@
-import { avancer, copiesNecessaires, doitAvancer, GESTE_MS } from './boucle'
+import { copiesNecessaires, GESTE_MS, replier, trajet } from './boucle'
 import { observer } from './chargement'
 import { repartir, TUILES, type Appli } from './tuiles'
 
@@ -9,11 +9,6 @@ const VITESSES: Record<Appli, { large: number[]; etroit: number[] }> = {
 }
 
 interface Colonne {
-  el: HTMLElement
-  vitesse: number
-  pos: number
-  periode: number
-  gesteJusqua: number
   nettoyer: () => void
 }
 
@@ -21,7 +16,6 @@ const large = matchMedia('(min-width: 768px)')
 const reduit = matchMedia('(prefers-reduced-motion: reduce)')
 
 let colonnes: Colonne[] = []
-let raf = 0
 
 function tuile(id: string): HTMLElement {
   const fig = document.createElement('figure')
@@ -37,14 +31,17 @@ function tuile(id: string): HTMLElement {
   return fig
 }
 
-/** Pose la colonne et sa première copie ; la mesure attend que toutes ses voisines existent. */
+/** Pose la colonne, sa piste et une première copie ; la mesure attend que toutes ses voisines existent. */
 function poserColonne(conteneur: HTMLElement, ids: string[]): HTMLElement {
   const el = document.createElement('div')
   el.className = 'colonne'
+  const piste = document.createElement('div')
+  piste.className = 'piste'
   const copie = document.createElement('div')
   copie.className = 'copie'
   ids.forEach(id => copie.append(tuile(id)))
-  el.append(copie)
+  piste.append(copie)
+  el.append(piste)
   conteneur.append(el)
   return el
 }
@@ -52,40 +49,53 @@ function poserColonne(conteneur: HTMLElement, ids: string[]): HTMLElement {
 function animerColonne(el: HTMLElement, vitesse: number, rang: number): Colonne {
   // La période d'une boucle est la hauteur d'une copie, gouttière comprise. Elle
   // dépend de la largeur de la colonne : on ne la mesure qu'une fois la zone complète.
-  const copie = el.firstElementChild as HTMLElement
+  const piste = el.firstElementChild as HTMLElement
+  const copie = piste.firstElementChild as HTMLElement
   const periode = copie.offsetHeight
   const n = copiesNecessaires(periode, el.clientHeight)
-  for (let i = 1; i < n; i++) el.append(copie.cloneNode(true))
+  for (let i = 1; i < n; i++) piste.append(copie.cloneNode(true))
 
-  const c: Colonne = {
-    el,
-    vitesse,
-    // Départs décalés : les colonnes ne défilent pas en rang d'oignons.
-    pos: periode * ((rang * 0.37) % 1),
-    periode,
-    gesteJusqua: 0,
-    nettoyer: () => {},
+  const arreterTuiles = observer(el)
+  if (reduit.matches || periode <= 0) return { nettoyer: arreterTuiles }
+
+  // Le mouvement est une animation de transform : le compositeur la joue seul,
+  // sans le fil principal que les tuiles React des iframes partagent avec la page.
+  // Un défilement piloté en JS sautait une image à chaque fois qu'une tuile calculait.
+  const { images, duree } = trajet(periode, vitesse)
+  const anim = piste.animate(images, { duration: duree, iterations: Infinity })
+  // Départs décalés : les colonnes ne défilent pas en rang d'oignons.
+  anim.currentTime = duree * ((rang * 0.37) % 1)
+
+  // Un geste fige la piste ; le défilement natif de la colonne s'ajoute à son
+  // décalage, puis l'animation reprend d'où le doigt l'a laissée.
+  let reprise = 0
+  let pose = -1 // le scrollTop que nous venons de poser nous-mêmes
+  const geste = () => {
+    anim.pause()
+    clearTimeout(reprise)
+    reprise = window.setTimeout(() => {
+      pose = el.scrollTop = replier(el.scrollTop, periode)
+      anim.play()
+    }, GESTE_MS)
   }
-  el.scrollTop = c.pos
-
-  const geste = () => { c.gesteJusqua = performance.now() + GESTE_MS }
   for (const type of ['wheel', 'touchstart', 'touchmove', 'pointerdown'] as const) {
     el.addEventListener(type, geste, { passive: true })
   }
   // Un défilement qui ne vient pas de nous (élan du doigt, barre, clavier) est un geste.
   el.addEventListener('scroll', () => {
-    if (Math.abs(el.scrollTop - c.pos) > 2) {
-      geste()
-      c.pos = el.scrollTop
-    }
+    if (Math.abs(el.scrollTop - pose) > 2) geste()
   }, { passive: true })
 
-  c.nettoyer = observer(el)
-  return c
+  return {
+    nettoyer: () => {
+      clearTimeout(reprise)
+      anim.cancel()
+      arreterTuiles()
+    },
+  }
 }
 
 function demonter() {
-  cancelAnimationFrame(raf)
   colonnes.forEach(c => c.nettoyer())
   colonnes = []
   document.querySelectorAll<HTMLElement>('.colonnes').forEach(z => z.replaceChildren())
@@ -105,23 +115,6 @@ function construire() {
     const poses = repartir(ids, vitesses.length).map(col => poserColonne(conteneur, col))
     poses.forEach((el, i) => colonnes.push(animerColonne(el, vitesses[i], rang++)))
   })
-  if (!reduit.matches) animer()
-}
-
-function animer() {
-  let avant = performance.now()
-  const pas = (maintenant: number) => {
-    // Plafonné : un onglet revenu de l'arrière-plan ne fait pas de bond.
-    const dt = Math.min(0.05, (maintenant - avant) / 1000)
-    avant = maintenant
-    for (const c of colonnes) {
-      if (!doitAvancer(maintenant, c.gesteJusqua)) continue
-      c.pos = avancer(c.pos, c.vitesse, dt, c.periode)
-      c.el.scrollTop = c.pos
-    }
-    raf = requestAnimationFrame(pas)
-  }
-  raf = requestAnimationFrame(pas)
 }
 
 function choisir(appli: Appli) {

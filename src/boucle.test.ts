@@ -1,19 +1,28 @@
 import { describe, expect, it } from 'vitest'
-import { avancer, copiesNecessaires, doitAvancer } from './boucle'
+import { copiesNecessaires, replier, trajet } from './boucle'
 
-describe('avancer', () => {
-  it('avance proportionnellement au temps', () => expect(avancer(10, 20, 0.5, 1000)).toBe(20))
-  it('replie au-delà de la période', () => expect(avancer(990, 20, 1, 1000)).toBe(10))
-  it('replie en marche arrière', () => expect(avancer(5, -20, 1, 1000)).toBe(985))
-  it('encaisse un grand saut de temps', () => expect(avancer(0, 30, 100, 1000)).toBe(0))
-  it('ne bouge pas sans période', () => expect(avancer(42, 20, 1, 0)).toBe(42))
+describe('trajet', () => {
+  it('monte d\'une période à la vitesse donnée', () => {
+    expect(trajet(1000, 20)).toEqual({
+      images: [{ transform: 'translateY(0px)' }, { transform: 'translateY(-1000px)' }],
+      duree: 50_000,
+    })
+  })
+  it('descend en vitesse négative', () => {
+    expect(trajet(1000, -25)).toEqual({
+      images: [{ transform: 'translateY(-1000px)' }, { transform: 'translateY(0px)' }],
+      duree: 40_000,
+    })
+  })
+})
+describe('replier', () => {
+  it('ramène un défilement dans la première période', () => expect(replier(2350, 1000)).toBe(350))
+  it('laisse une position déjà repliée', () => expect(replier(350, 1000)).toBe(350))
+  it('ne bouge pas sans période', () => expect(replier(42, 0)).toBe(42))
 })
 describe('copiesNecessaires', () => {
-  it('au moins deux copies', () => expect(copiesNecessaires(3000, 900)).toBe(2))
-  it('assez de copies pour couvrir la vue plus une', () => expect(copiesNecessaires(400, 900)).toBe(4))
+  // Le décalage de l'animation et le défilement à la main font chacun jusqu'à une période.
+  it('au moins trois copies', () => expect(copiesNecessaires(3000, 900)).toBe(3))
+  it('assez de copies pour couvrir la vue plus deux périodes', () => expect(copiesNecessaires(400, 900)).toBe(5))
   it('copie vide : deux', () => expect(copiesNecessaires(0, 900)).toBe(2))
-})
-describe('doitAvancer', () => {
-  it('suspend pendant un geste', () => expect(doitAvancer(1000, 1500)).toBe(false))
-  it('reprend après le geste', () => expect(doitAvancer(1600, 1500)).toBe(true))
 })
